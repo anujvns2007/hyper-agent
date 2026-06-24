@@ -1,20 +1,14 @@
-# GPU host — inference + Headroom (code-aware compression).
+# GPU host — vLLM inference, Headroom compression, public-docs RAG.
 #
-#   docker compose -f docker-compose.remote.yaml up -d --build
+#   cp .env.example .env   # optional: DOCS_SYNC_INTERVAL_SECONDS
+#   docker compose up -d --build
 #
-# MacBook tunnel:
-#   ssh -N \
-#     -L 8787:127.0.0.1:8787 \
-#     -L 8179:127.0.0.1:8179 \
-#     user@gpu-host
+# MacBook tunnel (from your laptop):
+#   ssh -N -L 8787:127.0.0.1:8787 -L 8179:127.0.0.1:8179 user@gpu-host
 #
-# MacBook MCP (via tunnel):
-#   knowledge-rag: http://127.0.0.1:8179/sse
-#
-# MacBook clients:
-#   export OPENAI_BASE_URL=http://127.0.0.1:8787/v1      # Codex → vLLM
-#   export ANTHROPIC_BASE_URL=http://127.0.0.1:8787      # Claude Code → Anthropic
-#   export ENABLE_TOOL_SEARCH=true
+# Tunneled endpoints on Mac:
+#   headroom:             http://127.0.0.1:8787
+#   knowledge-rag-docs:   http://127.0.0.1:8179/sse
 
 services:
   vllm-backend:
@@ -86,13 +80,13 @@ services:
     networks:
       - remote
 
-  knowledge-rag-docs-sync:
+  docs-sync:
     image: alpine:3.20
     container_name: knowledge-rag-docs-sync
     volumes:
-      - ./knowledge-rag/fetch-docs.sh:/fetch-docs.sh:ro
-      - ./knowledge-rag/fetch-docs-manifest.tsv:/fetch-docs-manifest.tsv:ro
-      - ./knowledge-rag/documents:/documents
+      - ./knowledge-rag-docs/fetch-docs.sh:/fetch-docs.sh:ro
+      - ./knowledge-rag-docs/fetch-docs-manifest.tsv:/fetch-docs-manifest.tsv:ro
+      - ./knowledge-rag-docs/documents:/documents
     environment:
       - DOCS_ROOT=/documents
       - MANIFEST=/fetch-docs-manifest.tsv
@@ -108,18 +102,18 @@ services:
     networks:
       - remote
 
-  knowledge-rag:
-    build: ./knowledge-rag
-    image: knowledge-rag-local:latest
-    container_name: knowledge-rag
+  knowledge-rag-docs:
+    build: ./knowledge-rag-docs
+    image: knowledge-rag-docs:latest
+    container_name: knowledge-rag-docs
     volumes:
-      - ./knowledge-rag/config.yaml:/app/config.yaml:ro
-      - ./knowledge-rag/documents:/app/documents
-      - ./knowledge-rag/data:/app/data
+      - ./knowledge-rag-docs/config.yaml:/app/config.yaml:ro
+      - ./knowledge-rag-docs/documents:/app/documents
+      - ./knowledge-rag-docs/data:/app/data
     ports:
       - "8179:8179"
     depends_on:
-      knowledge-rag-docs-sync:
+      docs-sync:
         condition: service_started
     healthcheck:
       test:

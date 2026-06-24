@@ -1,0 +1,85 @@
+# MacBook — MCP servers that need your filesystem.
+#
+#   cp .env.example .env
+#   docker compose up -d --build
+#
+# MCP endpoints:
+#   serena:               http://127.0.0.1:5050/sse
+#   code-graph:           http://127.0.0.1:5070/sse
+#   knowledge-rag-code:   http://127.0.0.1:8180/sse
+#
+# PROJECT_ROOT in .env:
+#   serena-mcp     → parent of repos (multi-project; activate per Cursor chat)
+#   code-graph / knowledge-rag-code → single repo path (avoid indexing ~/work/repo)
+
+services:
+  serena-mcp:
+    build: ./serena-mcp
+    image: serena-mcp:latest
+    container_name: serena-mcp
+    environment:
+      - SERENA_DOCKER=1
+    command: >
+      serena start-mcp-server
+      --transport sse
+      --host 0.0.0.0
+      --port 5050
+      --context ide-assistant
+    volumes:
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspaces/projects
+    ports:
+      - "5050:5050"
+    restart: unless-stopped
+    networks:
+      - local
+
+  code-graph-mcp:
+    build: ./code-graph-mcp
+    image: code-graph-mcp:latest
+    container_name: code-graph-mcp
+    volumes:
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspace:ro
+      - ./code-graph-mcp/data:/root/.cache/codebase-memory-mcp
+    ports:
+      - "5070:5070"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "node -e \"require('net').createConnection(5070,'127.0.0.1',()=>process.exit(0)).on('error',()=>process.exit(1))\"",
+        ]
+      interval: 30s
+      timeout: 15s
+      retries: 25
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - local
+
+  knowledge-rag-code:
+    build: ./knowledge-rag-code
+    image: knowledge-rag-code:latest
+    container_name: knowledge-rag-code
+    volumes:
+      - ./knowledge-rag-code/config.yaml:/app/config.yaml:ro
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/app/documents:ro
+      - ./knowledge-rag-code/data:/app/data
+    ports:
+      - "8180:8180"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',8180),2); s.close()\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 180s
+    restart: unless-stopped
+    networks:
+      - local
+
+networks:
+  local:
+    name: ai-agent-local

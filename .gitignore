@@ -1,23 +1,18 @@
-# Local environment (paths, optional overrides)
-.env
-.env.local
+# Local environment (paths)
+local/.env
+remote-gpu/.env
 
-# --- knowledge-rag: GPU host (public docs) ---
-# Downloaded by knowledge-rag-docs-sync; re-fetchable from fetch-docs-manifest.tsv
-knowledge-rag/documents/*
-!knowledge-rag/documents/.gitkeep
+# --- remote-gpu: public docs index ---
+remote-gpu/knowledge-rag-docs/documents/*
+!remote-gpu/knowledge-rag-docs/documents/.gitkeep
+remote-gpu/knowledge-rag-docs/data/*
+!remote-gpu/knowledge-rag-docs/data/.gitkeep
 
-# Vector index + embedding model cache (rebuilt on first start)
-knowledge-rag/data/*
-!knowledge-rag/data/.gitkeep
-
-# --- knowledge-rag: MacBook (PROJECT_ROOT code index) ---
-knowledge-rag/local-code-data/*
-!knowledge-rag/local-code-data/.gitkeep
-
-# --- code-graph-mcp: MacBook (structure graph cache) ---
-code-graph-mcp/data/*
-!code-graph-mcp/data/.gitkeep
+# --- local: code index + graph cache ---
+local/knowledge-rag-code/data/*
+!local/knowledge-rag-code/data/.gitkeep
+local/code-graph-mcp/data/*
+!local/code-graph-mcp/data/.gitkeep
 
 # OS / editor
 .DS_Store
