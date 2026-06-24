@@ -14,9 +14,18 @@ else
   echo "[code-graph] /workspace is empty — set PROJECT_ROOT in .env"
 fi
 
+# SSE on :5071 for Cursor (single-client). Streamable HTTP on :5070 for Codex.
+supergateway \
+  --stdio "codebase-memory-mcp" \
+  --port 5071 \
+  --outputTransport sse \
+  --baseUrl "http://127.0.0.1:5071" \
+  --ssePath /sse \
+  --messagePath /message &
+
 exec supergateway \
   --stdio "codebase-memory-mcp" \
   --port 5070 \
-  --baseUrl "http://127.0.0.1:5070" \
-  --ssePath /sse \
-  --messagePath /message
+  --outputTransport streamableHttp \
+  --streamableHttpPath /mcp \
+  --baseUrl "http://127.0.0.1:5070"

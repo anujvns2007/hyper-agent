@@ -6,8 +6,13 @@ Docker Compose services that need **direct access to your source tree**. Run the
 
 | Service | Port | MCP URL | Purpose |
 |---------|------|---------|---------|
-| **serena-mcp** | 5050 | `http://127.0.0.1:5050/sse` | Symbol navigation, definitions, structured edits |
-| **code-graph-mcp** | 5070 | `http://127.0.0.1:5070/sse` | Call-graph / structure intelligence |
+| **serena-mcp** | 5050 | `http://127.0.0.1:5050/sse` | Symbol navigation (auto-activates `/workspaces/projects`) |
+
+**Serena in Docker:** Your Mac path `PROJECT_ROOT` is mounted as `/workspaces/projects` inside the container. Codex must **not** use `/Users/...` paths with Serena — use `/workspaces/projects` or project name `projects`. With the current compose setup the project is auto-activated at startup.
+
+For multi-project setup, mount a parent directory in `.env` and remove `--project` from `docker-compose.yaml`; then activate per chat with `/workspaces/projects/<repo-name>`.
+| **code-graph-mcp** | 5070 | `http://127.0.0.1:5070/mcp` | Call-graph / structure (Codex, streamable HTTP) |
+| **code-graph-mcp** (Cursor) | 5071 | `http://127.0.0.1:5071/sse` | Same engine, SSE for Cursor |
 | **knowledge-rag-code** | 8180 | `http://127.0.0.1:8180/sse` | Semantic search over your repo |
 
 ## Quick start
@@ -29,11 +34,9 @@ docker compose ps
 | **code-graph-mcp** | Single repo, e.g. `~/work/repo/hyper-agent` |
 | **knowledge-rag-code** | Single repo (same as code-graph) |
 
-Serena activation (start of each Cursor chat):
+Serena is auto-activated when `PROJECT_ROOT` is a single repo (default). For a multi-repo parent mount, activate manually:
 
-> Activate Serena project hyper-agent at `/workspaces/projects/hyper-agent`
-
-Paths inside Serena use container paths under `/workspaces/projects/`.
+> Activate Serena project my-repo at `/workspaces/projects/my-repo`
 
 ## Cursor MCP config
 
@@ -41,7 +44,7 @@ Paths inside Serena use container paths under `/workspaces/projects/`.
 {
   "mcpServers": {
     "serena": { "url": "http://127.0.0.1:5050/sse" },
-    "code-graph": { "url": "http://127.0.0.1:5070/sse" },
+    "code-graph": { "url": "http://127.0.0.1:5071/sse" },
     "knowledge-rag-code": { "url": "http://127.0.0.1:8180/sse" }
   }
 }

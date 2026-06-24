@@ -9,8 +9,8 @@
 #   knowledge-rag-code:   http://127.0.0.1:8180/sse
 #
 # PROJECT_ROOT in .env:
-#   serena-mcp     → parent of repos (multi-project; activate per Cursor chat)
-#   code-graph / knowledge-rag-code → single repo path (avoid indexing ~/work/repo)
+#   serena-mcp     → repo root mounted at /workspaces/projects (auto-activated)
+#   code-graph / knowledge-rag-code → same PROJECT_ROOT path
 
 services:
   serena-mcp:
@@ -24,7 +24,10 @@ services:
       --transport sse
       --host 0.0.0.0
       --port 5050
-      --context ide-assistant
+      --context codex
+      --project-from-cwd
+      --open-web-dashboard=false
+      --project /workspaces/projects
     volumes:
       - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspaces/projects
     ports:
@@ -32,7 +35,6 @@ services:
     restart: unless-stopped
     networks:
       - local
-
   code-graph-mcp:
     build: ./code-graph-mcp
     image: code-graph-mcp:latest
@@ -42,6 +44,7 @@ services:
       - ./code-graph-mcp/data:/root/.cache/codebase-memory-mcp
     ports:
       - "5070:5070"
+      - "5071:5071"
     healthcheck:
       test:
         [
