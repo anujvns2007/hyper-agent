@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  # 1. Back-end Inference Engine
+  vllm-backend:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-qwen3.6
+    entrypoint: vllm
+    command: >
+      serve Qwen/Qwen3.6-35B-A3B-FP8
+      --port 8000
+      --tensor-parallel-size 1
+      --gpu-memory-utilization 0.75
+      --reasoning-parser qwen3
+    environment:
+      - PYTHONWARNINGS=ignore::DeprecationWarning
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    ipc: host
+    shm_size: '12gb'
+    mem_limit: 100g
+    cpus: 8.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/models || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+
+  headroom-proxy:
+    image: ghcr.io/chopratejas/headroom:latest
+    container_name: headroom-ai
+    command: headroom proxy --port 8787 --upstream-url http://vllm-backend:8000/v1
+    environment:
+      - HEADROOM_TELEMETRY=off
+    ports:
+      - "8787:8787"
+    depends_on:
+      vllm-backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # 3. Code & Symbol Semantic Tool Server (MCP)
+  serena-mcp:
+    image: ghcr.io/oraios/serena:latest
+    container_name: serena-mcp
+    environment:
+      - SERENA_DOCKER=1
+    command: >
+      serena start-mcp-server 
+      --transport sse 
+      --host 0.0.0.0 
+      --port 5050 
+      --context ide-assistant 
+      --project /workspaces/projects
+    volumes:
+      - /home/test/work/repo:/workspaces/projects
+    ports:
+      - "5050:5050"
+    restart: unless-stopped
+
+# Basic health check configuration for safe ordering
+networks:
+  default:
+    name: ai-agent-network
+
