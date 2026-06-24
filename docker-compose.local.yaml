@@ -1,0 +1,104 @@
+# MacBook (local) — tools that need your filesystem.
+#
+#   cp .env.example .env   # set PROJECT_ROOT=/Users/you/your/repo
+#   docker compose -f docker-compose.local.yaml up -d --build
+#
+# MCP endpoints (local):
+#   serena:               http://127.0.0.1:5050/sse
+#   knowledge-rag (code): http://127.0.0.1:8180/sse   ← PROJECT_ROOT, auto re-index
+#   code-graph:           http://127.0.0.1:5070/sse   ← call chains / structure graph
+#
+# MCP via SSH tunnel (GPU host):
+#   knowledge-rag (docs): http://127.0.0.1:8179/sse
+#   headroom / vLLM:      http://127.0.0.1:8787
+#
+#   ssh -N -L 8787:127.0.0.1:8787 -L 8179:127.0.0.1:8179 user@gpu-host
+#
+# LLM clients (via tunnel — code-aware compression on GPU Headroom):
+#   export OPENAI_BASE_URL=http://127.0.0.1:8787/v1      # Codex → vLLM
+#   export ANTHROPIC_BASE_URL=http://127.0.0.1:8787      # Claude Code → Anthropic
+#   export ENABLE_TOOL_SEARCH=true
+#
+# Headroom code-aware vs code-graph:
+#   code-aware  → remote Headroom proxy (GPU). No Mac setup; use tunneled :8787.
+#   code-graph  → code-graph-mcp service above (Docker, :5070). Same engine Headroom
+#                 uses with `--code-graph` (codebase-memory-mcp).
+#
+# Claude Code native wrap (optional — registers MCP in `claude mcp` instead of Cursor):
+#   pip install "headroom-ai[code]"
+#   cd "$PROJECT_ROOT"
+#   headroom wrap claude --code-graph --no-proxy --no-serena
+
+services:
+  serena-mcp:
+    image: ghcr.io/oraios/serena:latest
+    container_name: serena-mcp
+    environment:
+      - SERENA_DOCKER=1
+    command: >
+      serena start-mcp-server
+      --transport sse
+      --host 0.0.0.0
+      --port 5050
+      --context ide-assistant
+      --project /workspaces/projects
+    volumes:
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env to your local repo path}:/workspaces/projects
+    ports:
+      - "5050:5050"
+    restart: unless-stopped
+    networks:
+      - local
+
+  # Call-graph / structure intelligence (codebase-memory-mcp → SSE via supergateway).
+  code-graph-mcp:
+    build: ./code-graph-mcp
+    image: code-graph-mcp:latest
+    container_name: code-graph-mcp
+    volumes:
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspace:ro
+      - ./code-graph-mcp/data:/root/.cache/codebase-memory-mcp
+    ports:
+      - "5070:5070"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',5070),2); s.close()\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - local
+
+  # Indexes PROJECT_ROOT; file watcher re-indexes on save (≈5s debounce).
+  knowledge-rag-code:
+    build: ./knowledge-rag
+    image: knowledge-rag-local:latest
+    container_name: knowledge-rag-code
+    volumes:
+      - ./knowledge-rag/config.local.yaml:/app/config.yaml:ro
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/app/documents:ro
+      - ./knowledge-rag/local-code-data:/app/data
+    ports:
+      - "8180:8180"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',8180),2); s.close()\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 180s
+    restart: unless-stopped
+    networks:
+      - local
+
+networks:
+  local:
+    name: ai-agent-local

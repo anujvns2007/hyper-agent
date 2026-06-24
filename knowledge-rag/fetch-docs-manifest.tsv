@@ -1,0 +1,58 @@
+# category	url	filename
+# --- existing ---
+docker	https://docs.docker.com/llms-full.txt	llms-full.txt
+react	https://react.dev/llms.txt	llms.txt
+nextjs	https://nextjs.org/llms.txt	llms.txt
+anthropic	https://docs.anthropic.com/llms.txt	llms.txt
+pydantic	https://docs.pydantic.dev/llms.txt	llms.txt
+uv	https://docs.astral.sh/uv/llms.txt	llms.txt
+ruff	https://docs.astral.sh/ruff/llms.txt	llms.txt
+pytorch	https://pytorch.org/llms.txt	llms.txt
+postgres	https://www.postgresql.org/llms-full.txt	llms-full.txt
+# --- mobile / languages ---
+flutter	https://docs.flutter.dev/llms.txt	llms.txt
+dart	https://dart.dev/guides/llms.txt	llms.txt
+go	https://go.dev/ref/spec.md	spec.md
+go	https://go.dev/doc/effective_go.md	effective_go.md
+go	https://go.dev/doc/go1.24.md	go1.24.md
+rust	https://raw.githubusercontent.com/rust-lang/rust-by-example/master/src/SUMMARY.md	rust-by-example-summary.md
+rust	https://raw.githubusercontent.com/rust-lang/reference/master/src/introduction.md	reference-intro.md
+rust	https://raw.githubusercontent.com/rust-lang/book/main/README.md	book-readme.md
+cpp	https://raw.githubusercontent.com/isocpp/CppCoreGuidelines/master/CppCoreGuidelines.md	CppCoreGuidelines.md
+# --- realtime / security ---
+webrtc	https://raw.githubusercontent.com/webrtc/samples/master/README.md	samples-readme.md
+security-protocols	https://datatracker.ietf.org/doc/llms-full.txt	llms-full.txt
+security-protocols	https://datatracker.ietf.org/doc/llms.txt	llms-index.txt
+# --- post-quantum crypto ---
+pqc	https://raw.githubusercontent.com/open-quantum-safe/liboqs/main/README.md	liboqs-readme.md
+pqc	https://raw.githubusercontent.com/open-quantum-safe/oqs-provider/main/README.md	oqs-provider-readme.md
+pqc	https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-208.pdf	NIST.SP.800-208.pdf
+pqc	https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r5.pdf	NIST.SP.800-57pt1r5.pdf
+# --- jira / atlassian ---
+jira	https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/index.md	rest-api-intro.md
+jira	https://developer.atlassian.com/platform/forge/llms.txt	forge-llms.txt
+# --- media / streaming ---
+gstreamer	https://raw.githubusercontent.com/GStreamer/gstreamer/main/README.md	gstreamer-readme.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/README.md	gst-docs-readme.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/tutorials/basic/hello-world.md	hello-world.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/tutorials/index.md	tutorials-index.md
+ffmpeg	https://ffmpeg.org/ffmpeg.html	ffmpeg-manual.txt
+ffmpeg	https://ffmpeg.org/ffprobe.html	ffprobe-manual.txt
+ffmpeg	https://ffmpeg.org/ffmpeg-formats.html	ffmpeg-formats.txt
+ffmpeg	https://ffmpeg.org/ffmpeg-codecs.html	ffmpeg-codecs.txt
+ffmpeg	https://raw.githubusercontent.com/FFmpeg/FFmpeg/master/README.md	README.md
+livekit	https://docs.livekit.io/llms.txt	llms.txt
+livekit	https://docs.livekit.io/home/llms.txt	home-llms.txt
+livekit	https://raw.githubusercontent.com/livekit/livekit/master/README.md	livekit-readme.md
+# --- kubernetes / helm ---
+kubernetes	https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/home/_index.md	home.md
+kubernetes	https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/overview/_index.md	overview.md
+kubernetes	https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/workloads/pods/_index.md	pods.md
+kubernetes	https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/services-networking/service.md	service.md
+kubernetes	https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/concepts/workloads/controllers/deployment.md	deployment.md
+kubernetes	https://raw.githubusercontent.com/kubernetes/website/main/content/en/docs/reference/kubectl/_index.md	kubectl.md
+helm	https://raw.githubusercontent.com/helm/helm/main/README.md	README.md
+helm	https://raw.githubusercontent.com/helm/charts/master/README.md	charts-readme.md
+helm	https://helm.sh/docs/topics/charts/	charts-guide.txt
+helm	https://helm.sh/docs/chart_template_guide/getting_started/	chart-template-getting-started.txt
+helm	https://helm.sh/docs/intro/quickstart/	quickstart.txt

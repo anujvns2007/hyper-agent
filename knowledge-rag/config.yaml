@@ -1,0 +1,62 @@
+# knowledge-rag on GPU host — SSE server for MacBook MCP clients (via SSH tunnel).
+paths:
+  documents_dir: "/app/documents"
+  data_dir: "/app/data"
+  models_cache_dir: "/app/data/models_cache"
+
+server:
+  transport: "sse"
+  host: "0.0.0.0"
+  port: 8179
+
+documents:
+  supported_formats:
+    - ".md"
+    - ".txt"
+    - ".rst"
+    - ".pdf"
+    - ".py"
+    - ".json"
+    - ".yaml"
+    - ".yml"
+    - ".toml"
+  exclude_patterns:
+    - "**/.git/**"
+    - "**/node_modules/**"
+    - "**/__pycache__/**"
+  chunking:
+    chunk_size: 1200
+    chunk_overlap: 200
+
+search:
+  hybrid:
+    enabled: true
+  rerank:
+    enabled: true
+
+category_mappings:
+  python: ["python"]
+  typescript: ["typescript", "ts"]
+  javascript: ["javascript", "js", "node"]
+  docker: ["docker"]
+  fastapi: ["fastapi"]
+  react: ["react"]
+  nextjs: ["nextjs", "next"]
+  postgres: ["postgres", "postgresql"]
+  redis: ["redis"]
+  git: ["git"]
+  flutter: ["flutter", "dart", "widget", "mobile"]
+  dart: ["dart", "flutter"]
+  go: ["go", "golang"]
+  rust: ["rust", "cargo"]
+  cpp: ["cpp", "c++", "cplusplus"]
+  webrtc: ["webrtc", "rtc", "peerconnection", "ice", "stun", "turn"]
+  security-protocols: ["security", "tls", "ssl", "dtls", "srtp", "oauth", "jwt", "rfc", "ietf", "ipsec", "ssh"]
+  pqc: ["pqc", "post-quantum", "quantum", "kyber", "dilithium", "oqs", "nist"]
+  jira: ["jira", "atlassian", "forge"]
+  gstreamer: ["gstreamer", "gst", "pipeline", "pad", "element", "gstreamer"]
+  ffmpeg: ["ffmpeg", "ffprobe", "avcodec", "libav", "transcode", "mux", "demux"]
+  livekit: ["livekit", "sfu", "room", "track", "egress", "ingress"]
+  kubernetes: ["kubernetes", "k8s", "kubectl", "pod", "deployment", "namespace", "cluster"]
+  helm: ["helm", "chart", "values.yaml", "release", "template"]
+  general: ["general", "misc"]

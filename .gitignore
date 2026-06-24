@@ -1,0 +1,34 @@
+# Local environment (paths, optional overrides)
+.env
+.env.local
+
+# --- knowledge-rag: GPU host (public docs) ---
+# Downloaded by knowledge-rag-docs-sync; re-fetchable from fetch-docs-manifest.tsv
+knowledge-rag/documents/*
+!knowledge-rag/documents/.gitkeep
+
+# Vector index + embedding model cache (rebuilt on first start)
+knowledge-rag/data/*
+!knowledge-rag/data/.gitkeep
+
+# --- knowledge-rag: MacBook (PROJECT_ROOT code index) ---
+knowledge-rag/local-code-data/*
+!knowledge-rag/local-code-data/.gitkeep
+
+# --- code-graph-mcp: MacBook (structure graph cache) ---
+code-graph-mcp/data/*
+!code-graph-mcp/data/.gitkeep
+
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/

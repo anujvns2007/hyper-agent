@@ -1,0 +1,76 @@
+# Local MacBook — indexes your PROJECT_ROOT source tree (SSE on :8180).
+paths:
+  documents_dir: "/app/documents"
+  data_dir: "/app/data"
+  models_cache_dir: "/app/data/models_cache"
+
+server:
+  transport: "sse"
+  host: "0.0.0.0"
+  port: 8180
+
+documents:
+  supported_formats:
+    - ".md"
+    - ".txt"
+    - ".rst"
+    - ".py"
+    - ".js"
+    - ".jsx"
+    - ".ts"
+    - ".tsx"
+    - ".go"
+    - ".rs"
+    - ".java"
+    - ".kt"
+    - ".swift"
+    - ".dart"
+    - ".cpp"
+    - ".cc"
+    - ".cxx"
+    - ".h"
+    - ".hpp"
+    - ".c"
+    - ".cs"
+    - ".rb"
+    - ".php"
+    - ".lua"
+    - ".sh"
+    - ".yaml"
+    - ".yml"
+    - ".json"
+    - ".toml"
+    - ".sql"
+    - ".proto"
+    - ".graphql"
+    - ".dockerfile"
+  exclude_patterns:
+    - "**/.git/**"
+    - "**/node_modules/**"
+    - "**/__pycache__/**"
+    - "**/.venv/**"
+    - "**/venv/**"
+    - "**/target/**"
+    - "**/build/**"
+    - "**/dist/**"
+    - "**/vendor/**"
+    - "**/.idea/**"
+    - "**/.cursor/**"
+    - "**/faiss_data_store/**"
+    - "**/knowledge-rag/data/**"
+    - "**/*.min.js"
+    - "**/package-lock.json"
+    - "**/yarn.lock"
+    - "**/Cargo.lock"
+  chunking:
+    chunk_size: 1200
+    chunk_overlap: 200
+
+search:
+  hybrid:
+    enabled: true
+  rerank:
+    enabled: true
+
+category_mappings:
+  source: ["code", "repo", "project", "local"]

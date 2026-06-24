@@ -1,0 +1,140 @@
+# GPU host — inference + Headroom (code-aware compression).
+#
+#   docker compose -f docker-compose.remote.yaml up -d --build
+#
+# MacBook tunnel:
+#   ssh -N \
+#     -L 8787:127.0.0.1:8787 \
+#     -L 8179:127.0.0.1:8179 \
+#     user@gpu-host
+#
+# MacBook MCP (via tunnel):
+#   knowledge-rag: http://127.0.0.1:8179/sse
+#
+# MacBook clients:
+#   export OPENAI_BASE_URL=http://127.0.0.1:8787/v1      # Codex → vLLM
+#   export ANTHROPIC_BASE_URL=http://127.0.0.1:8787      # Claude Code → Anthropic
+#   export ENABLE_TOOL_SEARCH=true
+
+services:
+  vllm-backend:
+    image: vllm/vllm-openai:latest
+    container_name: vllm-qwen3.6
+    entrypoint: vllm
+    command: >
+      serve Qwen/Qwen3.6-35B-A3B-FP8
+      --port 8000
+      --tensor-parallel-size 1
+      --gpu-memory-utilization 0.5
+      --reasoning-parser qwen3
+    environment:
+      - PYTHONWARNINGS=ignore::DeprecationWarning
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    ipc: host
+    shm_size: '12gb'
+    mem_limit: 100g
+    cpus: 8.0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/models || exit 1"]
+      interval: 30s
+      timeout: 25s
+      retries: 20
+      start_period: 120s
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    networks:
+      - remote
+
+  headroom-proxy:
+    build: ./headroom
+    image: headroom-vllm:latest
+    container_name: headroom-ai
+    command:
+      - "--port"
+      - "8787"
+      - "--openai-api-url"
+      - "http://vllm-backend:8000/v1"
+      - "--code-aware"
+      - "--no-ccr-inject-tool"
+    environment:
+      - HEADROOM_HOST=0.0.0.0
+      - HEADROOM_TELEMETRY=off
+      - HEADROOM_CODE_AWARE_ENABLED=1
+      - HOME=/tmp/headroom-home
+      - OPENAI_TARGET_API_URL=http://vllm-backend:8000/v1
+    ports:
+      - "8787:8787"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8787/livez || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    depends_on:
+      vllm-backend:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - remote
+
+  knowledge-rag-docs-sync:
+    image: alpine:3.20
+    container_name: knowledge-rag-docs-sync
+    volumes:
+      - ./knowledge-rag/fetch-docs.sh:/fetch-docs.sh:ro
+      - ./knowledge-rag/fetch-docs-manifest.tsv:/fetch-docs-manifest.tsv:ro
+      - ./knowledge-rag/documents:/documents
+    environment:
+      - DOCS_ROOT=/documents
+      - MANIFEST=/fetch-docs-manifest.tsv
+      - DOCS_SYNC_INTERVAL_SECONDS=${DOCS_SYNC_INTERVAL_SECONDS:-86400}
+    command: >
+      sh -c "apk add --no-cache curl &&
+             /fetch-docs.sh &&
+             while true; do
+               sleep \"$${DOCS_SYNC_INTERVAL_SECONDS}\";
+               /fetch-docs.sh;
+             done"
+    restart: unless-stopped
+    networks:
+      - remote
+
+  knowledge-rag:
+    build: ./knowledge-rag
+    image: knowledge-rag-local:latest
+    container_name: knowledge-rag
+    volumes:
+      - ./knowledge-rag/config.yaml:/app/config.yaml:ro
+      - ./knowledge-rag/documents:/app/documents
+      - ./knowledge-rag/data:/app/data
+    ports:
+      - "8179:8179"
+    depends_on:
+      knowledge-rag-docs-sync:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',8179),2); s.close()\"",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 180s
+    restart: unless-stopped
+    networks:
+      - remote
+
+networks:
+  remote:
+    name: ai-agent-remote
