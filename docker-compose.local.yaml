@@ -1,12 +1,23 @@
 # MacBook (local) — tools that need your filesystem.
 #
-#   cp .env.example .env   # set PROJECT_ROOT=/Users/you/your/repo
+#   cp .env.example .env
 #   docker compose -f docker-compose.local.yaml up -d --build
 #
+# PROJECT_ROOT in .env:
+#   - serena-mcp: mount the *parent* of your repos (e.g. ~/work/repo) so multiple
+#     projects are available; activate one per Cursor session via activate_project.
+#   - code-graph / knowledge-rag: prefer a single repo path — indexing the whole
+#     parent tree is slow and memory-heavy (see README troubleshooting).
+#
 # MCP endpoints (local):
-#   serena:               http://127.0.0.1:5050/sse
+#   serena:               http://127.0.0.1:5050/sse   ← multi-project; activate per chat
 #   knowledge-rag (code): http://127.0.0.1:8180/sse   ← PROJECT_ROOT, auto re-index
 #   code-graph:           http://127.0.0.1:5070/sse   ← call chains / structure graph
+#
+# Serena multi-project (one active project at a time):
+#   At chat start, ask the agent to activate the workspace, e.g.:
+#     "Activate Serena project hyper-agent at /workspaces/projects/hyper-agent"
+#   Paths inside Serena tools use container paths under /workspaces/projects/.
 #
 # MCP via SSH tunnel (GPU host):
 #   knowledge-rag (docs): http://127.0.0.1:8179/sse
@@ -30,8 +41,10 @@
 #   headroom wrap claude --code-graph --no-proxy --no-serena
 
 services:
+  # One Serena instance; no --project at startup — agent activates the repo per session.
   serena-mcp:
-    image: ghcr.io/oraios/serena:latest
+    build: ./serena-mcp
+    image: serena-mcp:latest
     container_name: serena-mcp
     environment:
       - SERENA_DOCKER=1
@@ -41,9 +54,8 @@ services:
       --host 0.0.0.0
       --port 5050
       --context ide-assistant
-      --project /workspaces/projects
     volumes:
-      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env to your local repo path}:/workspaces/projects
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env to your projects parent directory}:/workspaces/projects
     ports:
       - "5050:5050"
     restart: unless-stopped
@@ -64,11 +76,11 @@ services:
       test:
         [
           "CMD-SHELL",
-          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',5070),2); s.close()\"",
+          "node -e \"require('net').createConnection(5070,'127.0.0.1',()=>process.exit(0)).on('error',()=>process.exit(1))\"",
         ]
       interval: 30s
-      timeout: 5s
-      retries: 5
+      timeout: 15s
+      retries: 25
       start_period: 120s
     restart: unless-stopped
     networks:

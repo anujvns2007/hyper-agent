@@ -10,7 +10,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 WORKDIR /app
 
 COPY config.yaml /app/config.yaml
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8179
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["knowledge-rag", "--transport", "sse"]
