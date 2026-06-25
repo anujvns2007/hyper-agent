@@ -21,6 +21,8 @@ On the **GPU host**, from this directory:
 cd remote-gpu
 cp .env.example .env   # optional: adjust DOCS_SYNC_INTERVAL_SECONDS
 
+hf download Qwen/Qwen3.6-35B-A3B-FP8
+
 docker compose up -d --build
 docker compose ps
 docker logs -f vllm-qwen3.6    # wait for model load
@@ -50,18 +52,50 @@ Host gpu-agent
   LocalForward 8179 127.0.0.1:8179
 ```
 
-## LLM clients (via tunnel)
+## Codex (MacBook) — `~/.codex/config.toml`
 
-| Client | Environment |
-|--------|-------------|
-| **Codex / OpenAI SDK** | `OPENAI_BASE_URL=http://127.0.0.1:8787/v1` |
-| **Claude Code** | `ANTHROPIC_BASE_URL=http://127.0.0.1:8787` |
+Codex **does not** reliably use `OPENAI_BASE_URL` for custom/local providers. Configure `model_providers` in TOML instead.
 
 ```bash
-export OPENAI_BASE_URL=http://127.0.0.1:8787/v1
-export OPENAI_API_KEY=dummy          # vLLM does not validate keys
+# On Mac (from this repo)
+mkdir -p ~/.codex
+cp codex.config.example.toml ~/.codex/config.toml
+cp codex.hyper-agent.config.example.toml ~/.codex/hyper-agent.config.toml
+export OPENAI_API_KEY=dummy    # name must match env_key in config.toml
+
+# Tunnel (8787 = Headroom, 8000 = optional direct vLLM debug)
+ssh -N -L 8787:127.0.0.1:8787 -L 8000:127.0.0.1:8000 user@gpu-host
+
+codex --profile hyper-agent
+```
+
+**Profile settings** (`hyper-agent.config.toml`):
+
+| Key | Value | Why |
+|-----|-------|-----|
+| `model_provider` | `headroom` | Routes via tunneled Headroom → vLLM |
+| `model` | `Qwen/Qwen3.6-35B-A3B-FP8` | Must match vLLM served name |
+| `wire_api` | `responses` | Required for Codex tool loop (in base config) |
+| `approval_policy` | `never` | No approval prompts (trusted dev machine) |
+| `sandbox_mode` | `danger-full-access` | Shell/file tools run without sandbox limits |
+
+Use `127.0.0.1`, not `localhost` (avoids IPv6 `/v1/responses` streaming issues).
+
+**Debug tool calling** — switch profile to direct vLLM (bypass Headroom):
+
+```toml
+# in ~/.codex/hyper-agent.config.toml
+model_provider = "vllm-direct"
+```
+
+vLLM is started with `--enable-auto-tool-choice` and `--tool-call-parser qwen3_coder` so Codex gets structured tool calls instead of raw `<tool_call>` text.
+
+## Claude Code (via tunnel)
+
+```bash
 export ANTHROPIC_BASE_URL=http://127.0.0.1:8787
 export ENABLE_TOOL_SEARCH=true
+claude
 ```
 
 ## Cursor MCP (tunneled docs)
@@ -91,6 +125,8 @@ curl -s -o /dev/null -w "docs-rag: %{http_code}\n" --max-time 3 http://127.0.0.1
 remote-gpu/
 ├── docker-compose.yaml
 ├── .env.example
+├── codex.config.example.toml           # → ~/.codex/config.toml (Mac)
+├── codex.hyper-agent.config.example.toml  # → ~/.codex/hyper-agent.config.toml
 ├── headroom/                  # Headroom + code-aware patch
 └── knowledge-rag-docs/
     ├── config.yaml
@@ -142,6 +178,8 @@ docker compose up -d knowledge-rag-docs
 ## Troubleshooting
 
 **vLLM exit 137 / unhealthy** — Usually OOM. Lower `--gpu-memory-utilization` or use a smaller model.
+
+**vLLM cannot find model / HF download errors in Docker** — The HuggingFace cache is mounted **read-only** so Docker cannot download or modify `~/.cache/huggingface`. Pre-download on the host: `hf download Qwen/Qwen3.6-35B-A3B-FP8`. Do not run Docker vLLM and native `vlm` against the same cache concurrently.
 
 **Headroom unhealthy** — Waits for vLLM. Check `docker logs vllm-qwen3.6` first.
 

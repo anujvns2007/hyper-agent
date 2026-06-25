@@ -90,8 +90,24 @@ See [local/README.md](local/README.md) for serena multi-project setup and MCP co
 ### 3. SSH tunnel (Mac → GPU)
 
 ```bash
-ssh -N -L 8787:127.0.0.1:8787 -L 8179:127.0.0.1:8179 user@gpu-host
+ssh -N \
+  -L 8787:127.0.0.1:8787 \
+  -L 8179:127.0.0.1:8179 \
+  -L 8000:127.0.0.1:8000 \
+  user@gpu-host
 ```
+
+### 3b. Codex on Mac (`~/.codex/config.toml`)
+
+```bash
+cd remote-gpu
+cp codex.config.example.toml ~/.codex/config.toml
+cp codex.hyper-agent.config.example.toml ~/.codex/hyper-agent.config.toml
+export OPENAI_API_KEY=dummy
+codex --profile hyper-agent
+```
+
+See [remote-gpu/README.md](remote-gpu/README.md) for `model_provider`, permissions, and troubleshooting raw `<tool_call>` output.
 
 ### 4. Cursor MCP
 
