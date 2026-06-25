@@ -116,8 +116,8 @@ See [remote-gpu/README.md](remote-gpu/README.md) for `model_provider`, permissio
   "mcpServers": {
     "serena": { "url": "http://127.0.0.1:5050/sse" },
     "code-graph": { "url": "http://127.0.0.1:5070/sse" },
-    "knowledge-rag-code": { "url": "http://127.0.0.1:8180/sse" },
-    "knowledge-rag-docs": { "url": "http://127.0.0.1:8179/sse" }
+    "knowledge-rag-code": { "url": "http://127.0.0.1:8180/mcp" },
+    "knowledge-rag-docs": { "url": "http://127.0.0.1:8179/mcp" }
   }
 }
 ```

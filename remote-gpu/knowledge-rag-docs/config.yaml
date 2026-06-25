@@ -5,7 +5,7 @@ paths:
   models_cache_dir: "/app/data/models_cache"
 
 server:
-  transport: "sse"
+  transport: "streamable-http"
   host: "0.0.0.0"
   port: 8179
 

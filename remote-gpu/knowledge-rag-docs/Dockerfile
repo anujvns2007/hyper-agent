@@ -16,4 +16,4 @@ RUN chmod +x /entrypoint.sh
 EXPOSE 8179
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["knowledge-rag", "--transport", "sse"]
+CMD ["knowledge-rag", "--transport", "streamable-http"]

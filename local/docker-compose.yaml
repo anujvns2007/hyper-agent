@@ -4,15 +4,18 @@
 #   docker compose up -d --build
 #
 # MCP endpoints:
-#   serena:               http://127.0.0.1:5050/sse
-#   code-graph:           http://127.0.0.1:5070/sse
-#   knowledge-rag-code:   http://127.0.0.1:8180/sse
+#   serena (Codex):       http://127.0.0.1:5050/mcp
+#   serena (Cursor):      http://127.0.0.1:5051/sse
+#   code-graph (Codex):   http://127.0.0.1:5070/mcp
+#   code-graph (Cursor):  http://127.0.0.1:5071/sse
+#   knowledge-rag-code:   http://127.0.0.1:8180/mcp
 #
 # PROJECT_ROOT in .env:
 #   serena-mcp     → repo root mounted at /workspaces/projects (auto-activated)
 #   code-graph / knowledge-rag-code → same PROJECT_ROOT path
 
 services:
+  # Codex: streamable HTTP on :5050/mcp (native — no mcp-remote).
   serena-mcp:
     build: ./serena-mcp
     image: serena-mcp:latest
@@ -21,20 +24,63 @@ services:
       - SERENA_DOCKER=1
     command: >
       serena start-mcp-server
-      --transport sse
+      --transport streamable-http
       --host 0.0.0.0
       --port 5050
       --context codex
-      --project-from-cwd
-      --open-web-dashboard=false
       --project /workspaces/projects
+      --open-web-dashboard=false
     volumes:
       - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspaces/projects
     ports:
       - "5050:5050"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',5050),5); s.close()\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 300s
     restart: unless-stopped
     networks:
       - local
+
+  # Cursor: SSE on :5051/sse (do not health-check /sse — single-client transport).
+  serena-mcp-sse:
+    build: ./serena-mcp
+    image: serena-mcp:latest
+    container_name: serena-mcp-sse
+    environment:
+      - SERENA_DOCKER=1
+    command: >
+      serena start-mcp-server
+      --transport sse
+      --host 0.0.0.0
+      --port 5051
+      --context claude-code
+      --project /workspaces/projects
+      --open-web-dashboard=false
+    volumes:
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspaces/projects
+    ports:
+      - "5051:5051"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',5051),5); s.close()\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 300s
+    restart: unless-stopped
+    networks:
+      - local
+
   code-graph-mcp:
     build: ./code-graph-mcp
     image: code-graph-mcp:latest

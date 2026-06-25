@@ -13,7 +13,7 @@ Docker Compose services that need **direct access to your source tree**. Run the
 For multi-project setup, mount a parent directory in `.env` and remove `--project` from `docker-compose.yaml`; then activate per chat with `/workspaces/projects/<repo-name>`.
 | **code-graph-mcp** | 5070 | `http://127.0.0.1:5070/mcp` | Call-graph / structure (Codex, streamable HTTP) |
 | **code-graph-mcp** (Cursor) | 5071 | `http://127.0.0.1:5071/sse` | Same engine, SSE for Cursor |
-| **knowledge-rag-code** | 8180 | `http://127.0.0.1:8180/sse` | Semantic search over your repo |
+| **knowledge-rag-code** | 8180 | `http://127.0.0.1:8180/mcp` | Semantic search over your repo |
 
 ## Quick start
 
@@ -45,7 +45,7 @@ Serena is auto-activated when `PROJECT_ROOT` is a single repo (default). For a m
   "mcpServers": {
     "serena": { "url": "http://127.0.0.1:5050/sse" },
     "code-graph": { "url": "http://127.0.0.1:5071/sse" },
-    "knowledge-rag-code": { "url": "http://127.0.0.1:8180/sse" }
+    "knowledge-rag-code": { "url": "http://127.0.0.1:8180/mcp" }
   }
 }
 ```
@@ -53,10 +53,11 @@ Serena is auto-activated when `PROJECT_ROOT` is a single repo (default). For a m
 ## Verify
 
 ```bash
-docker compose ps                                    # all Up, code-graph healthy
-docker inspect code-graph-mcp knowledge-rag-code \
-  --format '{{.Name}} restarts={{.RestartCount}}'   # restarts should be 0
-curl -s -o /dev/null -w "serena: %{http_code}\n" --max-time 3 http://127.0.0.1:5050/sse
+docker compose ps                                    # all Up (healthy)
+docker inspect serena-mcp code-graph-mcp knowledge-rag-code \
+  --format '{{.Name}} health={{.State.Health.Status}} restarts={{.RestartCount}}'
+# Do not curl /sse for serena or code-graph — SSE allows only one client
+python3 -c "import urllib.error,urllib.request; exec('try:\\n urllib.request.urlopen(\\\"http://127.0.0.1:5050/\\\", timeout=3)\\nexcept urllib.error.HTTPError: pass'); print('serena: ok')"
 python3 -c "import socket; [socket.create_connection(('127.0.0.1',p),2).close() or print(f'port {p}: ok') for p in (5070,8180)]"
 ```
 
@@ -76,7 +77,7 @@ local/
 
 ## Troubleshooting
 
-**code-graph-mcp restart loop** — Do not health-check `/sse` (supergateway allows only one SSE client). The compose file uses a TCP port probe.
+**serena-mcp / code-graph-mcp restart loop** — Do not health-check `/sse` (SSE allows only one client). Healthchecks probe the HTTP server without opening an SSE session (serena: `GET /`; code-graph: TCP on :5070).
 
 **knowledge-rag-code restart loop (exit 75)** — Stale PID lock from Docker restarts. The entrypoint clears it automatically; if stuck: `rm knowledge-rag-code/data/knowledge-rag.lock`.
 

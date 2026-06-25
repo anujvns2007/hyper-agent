@@ -8,7 +8,7 @@
 #
 # Tunneled endpoints on Mac:
 #   headroom:             http://127.0.0.1:8787
-#   knowledge-rag-docs:   http://127.0.0.1:8179/sse
+#   knowledge-rag-docs:   http://127.0.0.1:8179/mcp
 
 services:
   vllm-backend:

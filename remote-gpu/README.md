@@ -103,7 +103,7 @@ claude
 ```json
 {
   "mcpServers": {
-    "knowledge-rag-docs": { "url": "http://127.0.0.1:8179/sse" }
+    "knowledge-rag-docs": { "url": "http://127.0.0.1:8179/mcp" }
   }
 }
 ```
@@ -116,7 +116,7 @@ curl -s http://127.0.0.1:8787/livez
 curl -s http://127.0.0.1:8000/v1/models
 
 # On Mac (tunnel must be up)
-curl -s -o /dev/null -w "docs-rag: %{http_code}\n" --max-time 3 http://127.0.0.1:8179/sse
+curl -s -o /dev/null -w "docs-rag: %{http_code}\n" --max-time 3 http://127.0.0.1:8179/mcp
 ```
 
 ## Layout

@@ -58,4 +58,4 @@ RUN uv venv \
     && uv pip install -r pyproject.toml -e .
 ENV PATH="/workspaces/serena/.venv/bin:${PATH}"
 
-ENTRYPOINT ["/bin/bash", "-c", "source .venv/bin/activate && exec \"$@\"", "--"]
+ENTRYPOINT ["/bin/bash", "-c", "source /workspaces/serena/.venv/bin/activate && exec \"$@\"", "--"]
