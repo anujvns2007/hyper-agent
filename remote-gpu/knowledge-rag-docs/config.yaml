@@ -1,4 +1,4 @@
-# knowledge-rag on GPU host — SSE server for MacBook MCP clients (via SSH tunnel).
+# knowledge-rag on GPU host — public docs index (streamable HTTP on :8179/mcp).
 paths:
   documents_dir: "/app/documents"
   data_dir: "/app/data"
@@ -8,6 +8,16 @@ server:
   transport: "streamable-http"
   host: "0.0.0.0"
   port: 8179
+
+models:
+  embedding:
+    model: "BAAI/bge-large-en-v1.5"  # 1024D — good fit for NVIDIA GPU indexing
+    dimensions: 1024
+    gpu: true                           # onnxruntime-gpu + CUDA (see Dockerfile [gpu] extra)
+  reranker:
+    enabled: true
+    model: "Xenova/ms-marco-MiniLM-L-6-v2"
+    top_k_multiplier: 3
 
 documents:
   supported_formats:

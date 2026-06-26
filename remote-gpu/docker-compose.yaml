@@ -91,6 +91,13 @@ services:
       - ./knowledge-rag-docs/data:/app/data
     ports:
       - "8179:8179"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     depends_on:
       docs-sync:
         condition: service_started

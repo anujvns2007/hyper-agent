@@ -2,6 +2,7 @@
 #
 #   cp .env.example .env
 #   docker compose up -d --build
+#   KNOWLEDGE_RAG_GPU=1 docker compose up -d --build   # NVIDIA CUDA embeddings
 #
 # Endpoints:
 #   headroom:             http://127.0.0.1:8787
@@ -78,9 +79,21 @@ services:
       - local
 
   knowledge-rag-code:
-    build: ./knowledge-rag-code
+    build:
+      context: ./knowledge-rag-code
+      args:
+        KNOWLEDGE_RAG_GPU: ${KNOWLEDGE_RAG_GPU:-0}
     image: knowledge-rag-code:latest
     container_name: knowledge-rag-code
+    environment:
+      KNOWLEDGE_RAG_GPU: ${KNOWLEDGE_RAG_GPU:-0}
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: ${KNOWLEDGE_RAG_GPU:-0}
+              capabilities: [gpu]
     volumes:
       - ./knowledge-rag-code/config.yaml:/app/config.yaml:ro
       - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/app/documents:ro

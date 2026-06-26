@@ -172,6 +172,8 @@ docker compose up -d knowledge-rag-docs
 
 **knowledge-rag-docs unreachable from Mac** — SSH tunnel must be running on port 8179.
 
+**knowledge-rag-docs GPU embeddings** — `config.yaml` sets `models.embedding.gpu: true`; the image installs `knowledge-rag[server,gpu]`. Compose passes one NVIDIA device (shares the GPU with vLLM). After rebuild, logs should show CUDA providers; if not, it falls back to CPU with a `[WARN]`. vLLM uses `--gpu-memory-utilization 0.7`; if embedding indexing OOMs, lower vLLM utilization or switch to `bge-small-en-v1.5` (384D).
+
 **Headroom issues** — Headroom runs locally; see [../local/README.md](../local/README.md).
 
 ## Logs

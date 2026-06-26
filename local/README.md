@@ -31,6 +31,12 @@ cp .env.example .env   # set PROJECT_ROOT; optional VLLM_UPSTREAM_URL
 docker compose up -d --build
 ```
 
+**NVIDIA GPU** — set `KNOWLEDGE_RAG_GPU=1` in `.env` (or pass on the command line), then rebuild:
+
+```bash
+KNOWLEDGE_RAG_GPU=1 docker compose up -d --build
+```
+
 Headroom forwards to vLLM on the GPU host. Start the SSH tunnel first so `host.docker.internal:8000` reaches vLLM:
 
 ```bash
