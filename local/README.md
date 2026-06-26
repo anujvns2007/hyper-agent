@@ -1,102 +1,49 @@
 # Local MCP Stack (MacBook)
 
-Docker Compose services that need **direct access to your source tree**. Run these on the machine where you code (typically your MacBook).
+Docker Compose services that need **direct access to your source tree**.
 
-## Services
+## Serena (native uvx)
 
-| Service | Port | MCP URL | Purpose |
-|---------|------|---------|---------|
-| **serena-mcp** | 5050 | `http://127.0.0.1:5050/sse` | Symbol navigation (auto-activates `/workspaces/projects`) |
+Install once:
 
-**Serena in Docker:** Your Mac path `PROJECT_ROOT` is mounted as `/workspaces/projects` inside the container. Codex must **not** use `/Users/...` paths with Serena — use `/workspaces/projects` or project name `projects`. With the current compose setup the project is auto-activated at startup.
+```bash
+# uvx must be on PATH (~/.local/bin)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
 
-For multi-project setup, mount a parent directory in `.env` and remove `--project` from `docker-compose.yaml`; then activate per chat with `/workspaces/projects/<repo-name>`.
-| **code-graph-mcp** | 5070 | `http://127.0.0.1:5070/mcp` | Call-graph / structure (Codex, streamable HTTP) |
-| **code-graph-mcp** (Cursor) | 5071 | `http://127.0.0.1:5071/sse` | Same engine, SSE for Cursor |
-| **knowledge-rag-code** | 8180 | `http://127.0.0.1:8180/mcp` | Semantic search over your repo |
+**Claude Code** — run `local/scripts/setup-claude-mcp.sh` to write Headroom/model env to `~/.claude/settings.json` (requires SSH tunnel to remote-gpu). Serena hooks live in `.claude/settings.json`.
+
+**Codex** — add `local/codex.serena.example.toml` to `~/.codex/config.toml`.
+
+## Services (Docker)
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| **code-graph-mcp** | 5070 | Call-graph MCP (HTTP) |
+| **knowledge-rag-code** | 8180 | Semantic search over repo |
 
 ## Quick start
 
 ```bash
 cd local
-cp .env.example .env
-# Edit .env — set PROJECT_ROOT to your repo (or parent dir for serena multi-project)
-
+cp .env.example .env   # set PROJECT_ROOT to repo path
 docker compose up -d --build
-docker compose ps
 ```
 
-## PROJECT_ROOT
+## Claude Code
 
-| Service | Recommended `PROJECT_ROOT` |
-|---------|---------------------------|
-| **serena-mcp** | Parent of repos, e.g. `~/work/repo` — activate one project per Cursor chat |
-| **code-graph-mcp** | Single repo, e.g. `~/work/repo/hyper-agent` |
-| **knowledge-rag-code** | Single repo (same as code-graph) |
-
-Serena is auto-activated when `PROJECT_ROOT` is a single repo (default). For a multi-repo parent mount, activate manually:
-
-> Activate Serena project my-repo at `/workspaces/projects/my-repo`
-
-## Cursor MCP config
-
-```json
-{
-  "mcpServers": {
-    "serena": { "url": "http://127.0.0.1:5050/sse" },
-    "code-graph": { "url": "http://127.0.0.1:5071/sse" },
-    "knowledge-rag-code": { "url": "http://127.0.0.1:8180/mcp" }
-  }
-}
-```
-
-## Verify
+Assumes remote-gpu is running on the GPU host and SSH forwarding is active:
 
 ```bash
-docker compose ps                                    # all Up (healthy)
-docker inspect serena-mcp code-graph-mcp knowledge-rag-code \
-  --format '{{.Name}} health={{.State.Health.Status}} restarts={{.RestartCount}}'
-# Do not curl /sse for serena or code-graph — SSE allows only one client
-python3 -c "import urllib.error,urllib.request; exec('try:\\n urllib.request.urlopen(\\\"http://127.0.0.1:5050/\\\", timeout=3)\\nexcept urllib.error.HTTPError: pass'); print('serena: ok')"
-python3 -c "import socket; [socket.create_connection(('127.0.0.1',p),2).close() or print(f'port {p}: ok') for p in (5070,8180)]"
+ssh -N -L 8787:127.0.0.1:8787 -L 8179:127.0.0.1:8179 user@gpu-host
+bash local/scripts/setup-claude-mcp.sh   # writes ~/.claude/settings.json
+claude    # from repo root
 ```
 
-## Layout
+Start local MCP containers separately: `cd local && docker compose up -d --build`
 
-```
-local/
-├── docker-compose.yaml
-├── .env.example
-├── serena-mcp/           # Serena MCP (built from GitHub)
-├── code-graph-mcp/       # codebase-memory-mcp + supergateway
-│   └── data/             # graph index cache (gitignored)
-└── knowledge-rag-code/   # semantic index of PROJECT_ROOT
-    ├── config.yaml
-    └── data/             # vectors + model cache (gitignored)
-```
+See `.claude/settings.json` (Serena hooks) and `local/scripts/setup-claude-mcp.sh`.
 
-## Troubleshooting
+## Codex
 
-**serena-mcp / code-graph-mcp restart loop** — Do not health-check `/sse` (SSE allows only one client). Healthchecks probe the HTTP server without opening an SSE session (serena: `GET /`; code-graph: TCP on :5070).
-
-**knowledge-rag-code restart loop (exit 75)** — Stale PID lock from Docker restarts. The entrypoint clears it automatically; if stuck: `rm knowledge-rag-code/data/knowledge-rag.lock`.
-
-**Slow or OOM indexing** — Point `PROJECT_ROOT` at one repo, not your entire `~/work/repo` tree.
-
-**Re-index from scratch**
-
-```bash
-docker compose stop code-graph-mcp
-rm -rf code-graph-mcp/data/*
-docker compose up -d code-graph-mcp
-
-docker compose stop knowledge-rag-code
-rm -rf knowledge-rag-code/data/*
-docker compose up -d knowledge-rag-code
-```
-
-## Logs
-
-```bash
-docker compose logs -f serena-mcp code-graph-mcp knowledge-rag-code
-```
+Add Serena via `local/codex.serena.example.toml` and Headroom via `remote-gpu/codex.config.example.toml`. `knowledge-rag-docs` requires the SSH tunnel to the GPU host.

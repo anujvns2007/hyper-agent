@@ -1,6 +1,6 @@
-# Hyper Agent — Local + Remote GPU Stack
+# Agent — Local + Remote GPU Stack
 
-Docker Compose setup for coding agents (Cursor, Claude Code, Codex) with **inference on a GPU host** and **code-aware MCP tools on your MacBook**.
+Docker Compose setup for coding agents (Claude Code, Codex) with **inference on a GPU host** and **code-aware MCP tools on your MacBook**.
 
 Your source code stays on the Mac. The GPU machine runs the LLM, Headroom compression proxy, and a searchable index of **public documentation**. Your Mac runs MCP servers that need direct filesystem access.
 
@@ -9,8 +9,8 @@ Your source code stays on the Mac. The GPU machine runs the LLM, Headroom compre
 ```mermaid
 flowchart TB
   subgraph mac["MacBook — local/"]
-    IDE["Cursor / Claude Code / Codex"]
-    SER["serena-mcp :5050"]
+    IDE["Claude Code / Codex"]
+    SER["Serena (native uvx stdio)"]
     KRC["knowledge-rag-code :8180"]
     REPO["PROJECT_ROOT"]
     CG["code-graph-mcp :5070"]
@@ -49,12 +49,11 @@ flowchart TB
 ## Repository layout
 
 ```
-hyper-agent/
+agent/
 ├── README.md                 ← you are here
 ├── local/                    ← run on MacBook (MCP + code indexes)
 │   ├── README.md
 │   ├── docker-compose.yaml
-│   ├── serena-mcp/
 │   ├── code-graph-mcp/
 │   └── knowledge-rag-code/
 └── remote-gpu/               ← run on Linux GPU host (LLM + docs)
@@ -85,7 +84,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-See [local/README.md](local/README.md) for serena multi-project setup and MCP config.
+See [local/README.md](local/README.md) for Serena (native uvx) and [remote-gpu/README.md](remote-gpu/README.md) for LLM provider settings.
 
 ### 3. SSH tunnel (Mac → GPU)
 
@@ -109,20 +108,17 @@ codex --profile hyper-agent
 
 See [remote-gpu/README.md](remote-gpu/README.md) for `model_provider`, permissions, and troubleshooting raw `<tool_call>` output.
 
-### 4. Cursor MCP
+### 4. Claude Code
 
-```json
-{
-  "mcpServers": {
-    "serena": { "url": "http://127.0.0.1:5050/sse" },
-    "code-graph": { "url": "http://127.0.0.1:5070/sse" },
-    "knowledge-rag-code": { "url": "http://127.0.0.1:8180/mcp" },
-    "knowledge-rag-docs": { "url": "http://127.0.0.1:8179/mcp" }
-  }
-}
+Assumes remote-gpu is running on the GPU host and SSH port forwarding is active on this machine:
+
+```bash
+ssh -N -L 8787:127.0.0.1:8787 -L 8179:127.0.0.1:8179 -L 8000:127.0.0.1:8000 user@gpu-host
+bash local/scripts/setup-claude-mcp.sh   # writes ~/.claude/settings.json
+cd /path/to/agent && claude
 ```
 
-`knowledge-rag-docs` requires the SSH tunnel. The other three are fully local.
+Register MCP servers in `~/.claude.json` separately (`claude mcp add ... -s user`). Serena hooks: `.claude/settings.json`.
 
 ## What runs where
 
@@ -131,7 +127,7 @@ See [remote-gpu/README.md](remote-gpu/README.md) for `model_provider`, permissio
 | vLLM | GPU | 8000 | `remote-gpu/` |
 | Headroom proxy | GPU | 8787 | `remote-gpu/` |
 | knowledge-rag-docs | GPU | 8179 | `remote-gpu/` |
-| serena-mcp | Mac | 5050 | `local/` |
+| serena | Mac | — | native `uvx` stdio — see `local/codex.serena.example.toml` |
 | code-graph-mcp | Mac | 5070 | `local/` |
 | knowledge-rag-code | Mac | 8180 | `local/` |
 
@@ -141,14 +137,15 @@ See [remote-gpu/README.md](remote-gpu/README.md) for `model_provider`, permissio
 # Mac — containers stable
 cd local && docker compose ps
 
-# Mac — MCP ports
-curl -s -o /dev/null -w "serena: %{http_code}\n" --max-time 3 http://127.0.0.1:5050/sse
+# Mac — MCP ports (Docker services; Serena for Codex is native stdio)
+python3 -c "import socket; socket.create_connection(('127.0.0.1',8180),2).close(); print('knowledge-rag-code: ok')"
 
 # GPU via tunnel
 curl -s http://127.0.0.1:8787/livez
+curl -s http://127.0.0.1:8000/v1/models
 ```
 
-In Cursor, confirm all four MCP servers show connected, then ask the agent to search your repo (`knowledge-rag-code`) and look up a library doc (`knowledge-rag-docs`).
+Ask the agent to search your repo (`knowledge-rag-code`) and look up a library doc (`knowledge-rag-docs`).
 
 ## Further reading
 

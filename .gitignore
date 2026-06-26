@@ -1,6 +1,11 @@
 # Local environment (paths)
 local/.env
 remote-gpu/.env
+local/claude.env
+
+.mcp.json
+.codex/
+.claude
 
 # --- remote-gpu: public docs index ---
 remote-gpu/knowledge-rag-docs/documents/*
@@ -13,6 +18,7 @@ local/knowledge-rag-code/data/*
 !local/knowledge-rag-code/data/.gitkeep
 local/code-graph-mcp/data/*
 !local/code-graph-mcp/data/.gitkeep
+local/serena-mcp/   # legacy Docker Serena logs (sudo rm -rf to remove)
 
 # OS / editor
 .DS_Store
@@ -27,3 +33,4 @@ __pycache__/
 *.py[cod]
 .venv/
 venv/
+.serena

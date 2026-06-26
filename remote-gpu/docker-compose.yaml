@@ -12,11 +12,13 @@
 
 services:
   vllm-backend:
-    image: vllm/vllm-openai:latest
+    build: ./vllm
+    image: vllm-qwen-main:latest
     container_name: vllm-qwen3.6
     entrypoint: vllm
     command: >
       serve Qwen/Qwen3.6-35B-A3B-FP8
+      --served-model-name qwen3.6
       --port 8000
       --tensor-parallel-size 1
       --gpu-memory-utilization 0.7
@@ -28,6 +30,8 @@ services:
       - HF_HOME=/root/.cache/huggingface
       - HF_HUB_OFFLINE=1
       - TRANSFORMERS_OFFLINE=1
+      # GB10/Blackwell: nightly DeepGemm MoE path crashes during FP8 weight load
+      - VLLM_USE_DEEP_GEMM=0
     volumes:
       - ${HF_CACHE:-${HOME}/.cache/huggingface}:/root/.cache/huggingface:ro
     ipc: host
@@ -60,6 +64,8 @@ services:
     command:
       - "--port"
       - "8787"
+      - "--anthropic-api-url"
+      - "http://vllm-backend:8000"
       - "--openai-api-url"
       - "http://vllm-backend:8000/v1"
       - "--code-aware"
@@ -69,6 +75,7 @@ services:
       - HEADROOM_TELEMETRY=off
       - HEADROOM_CODE_AWARE_ENABLED=1
       - HOME=/tmp/headroom-home
+      - ANTHROPIC_TARGET_API_URL=http://vllm-backend:8000
       - OPENAI_TARGET_API_URL=http://vllm-backend:8000/v1
     ports:
       - "8787:8787"

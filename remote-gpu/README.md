@@ -74,7 +74,7 @@ codex --profile hyper-agent
 | Key | Value | Why |
 |-----|-------|-----|
 | `model_provider` | `headroom` | Routes via tunneled Headroom → vLLM |
-| `model` | `Qwen/Qwen3.6-35B-A3B-FP8` | Must match vLLM served name |
+| `model` | `qwen3.6` | Must match vLLM `--served-model-name` |
 | `wire_api` | `responses` | Required for Codex tool loop (in base config) |
 | `approval_policy` | `never` | No approval prompts (trusted dev machine) |
 | `sandbox_mode` | `danger-full-access` | Shell/file tools run without sandbox limits |
@@ -92,21 +92,13 @@ vLLM is started with `--enable-auto-tool-choice` and `--tool-call-parser qwen3_c
 
 ## Claude Code (via tunnel)
 
+Headroom URL and model IDs live in `.claude/settings.json` at the repo root. Override per machine with `.claude/settings.local.json`.
+
 ```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8787
-export ENABLE_TOOL_SEARCH=true
-claude
+cd /path/to/agent && claude
 ```
 
-## Cursor MCP (tunneled docs)
-
-```json
-{
-  "mcpServers": {
-    "knowledge-rag-docs": { "url": "http://127.0.0.1:8179/mcp" }
-  }
-}
-```
+Set `ENABLE_TOOL_SEARCH=false` until vLLM/Qwen supports deferred `tool_reference` blocks in tool results.
 
 ## Verify
 
@@ -127,7 +119,7 @@ remote-gpu/
 ├── .env.example
 ├── codex.config.example.toml           # → ~/.codex/config.toml (Mac)
 ├── codex.hyper-agent.config.example.toml  # → ~/.codex/hyper-agent.config.toml
-├── headroom/                  # Headroom + code-aware patch
+├── headroom/                  # Headroom image + code-aware extra
 └── knowledge-rag-docs/
     ├── config.yaml
     ├── fetch-docs-manifest.tsv
