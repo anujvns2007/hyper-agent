@@ -1,14 +1,16 @@
-# GPU host — vLLM inference, Headroom compression, public-docs RAG.
+# GPU host — vLLM inference and public-docs RAG.
 #
 #   cp .env.example .env   # optional: DOCS_SYNC_INTERVAL_SECONDS
 #   docker compose up -d --build
 #
 # MacBook tunnel (from your laptop):
-#   ssh -N -L 8787:127.0.0.1:8787 -L 8179:127.0.0.1:8179 user@gpu-host
+#   ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host
 #
 # Tunneled endpoints on Mac:
-#   headroom:             http://127.0.0.1:8787
-#   knowledge-rag-docs:   http://127.0.0.1:8179/mcp
+#   vLLM (Headroom upstream):  http://127.0.0.1:8000
+#   knowledge-rag-docs:        http://127.0.0.1:8179/mcp
+#
+# Headroom runs locally — see local/docker-compose.yaml.
 
 services:
   vllm-backend:
@@ -54,41 +56,6 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
-    networks:
-      - remote
-
-  headroom-proxy:
-    build: ./headroom
-    image: headroom-vllm:latest
-    container_name: headroom-ai
-    command:
-      - "--port"
-      - "8787"
-      - "--anthropic-api-url"
-      - "http://vllm-backend:8000"
-      - "--openai-api-url"
-      - "http://vllm-backend:8000/v1"
-      - "--code-aware"
-      - "--no-ccr-inject-tool"
-    environment:
-      - HEADROOM_HOST=0.0.0.0
-      - HEADROOM_TELEMETRY=off
-      - HEADROOM_CODE_AWARE_ENABLED=1
-      - HOME=/tmp/headroom-home
-      - ANTHROPIC_TARGET_API_URL=http://vllm-backend:8000
-      - OPENAI_TARGET_API_URL=http://vllm-backend:8000/v1
-    ports:
-      - "8787:8787"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8787/livez || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 5
-      start_period: 15s
-    depends_on:
-      vllm-backend:
-        condition: service_healthy
-    restart: unless-stopped
     networks:
       - remote
 

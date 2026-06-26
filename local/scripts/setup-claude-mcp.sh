@@ -2,10 +2,10 @@
 # Configure Claude Code for this stack via ~/.claude/settings.json.
 #
 # Assumes:
-#   - remote-gpu (vLLM, Headroom, knowledge-rag-docs) runs on a remote GPU host
-#   - SSH port forwarding is active on this machine:
-#       ssh -N -L 8787:127.0.0.1:8787 -L 8179:127.0.0.1:8179 user@gpu-host
-#   - local MCP containers (code-graph, knowledge-rag-code) are started separately
+#   - local/ containers (Headroom, code-graph, knowledge-rag-code) are running
+#   - remote-gpu (vLLM, knowledge-rag-docs) runs on a remote GPU host
+#   - SSH port forwarding for vLLM and docs RAG:
+#       ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host
 #
 # Usage:
 #   bash local/scripts/setup-claude-mcp.sh
@@ -55,21 +55,22 @@ with open(path, "w", encoding="utf-8") as f:
 PY
 }
 
-verify_tunnel() {
+verify_headroom() {
   if curl -sf "${HEADROOM_URL%/}/livez" >/dev/null 2>&1; then
     echo "  Headroom reachable at $HEADROOM_URL"
     return 0
   fi
   echo "  Warning: Headroom not reachable at $HEADROOM_URL" >&2
-  echo "  Ensure remote-gpu is running and SSH forwarding is up:" >&2
-  echo "    ssh -N -L 8787:127.0.0.1:8787 -L 8179:127.0.0.1:8179 user@gpu-host" >&2
+  echo "  Start local stack: cd local && docker compose up -d --build" >&2
+  echo "  Ensure vLLM tunnel is up for Headroom upstream:" >&2
+  echo "    ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host" >&2
   return 1
 }
 
 main() {
   write_user_settings
-  log "Verifying SSH tunnel..."
-  verify_tunnel || true
+  log "Verifying local Headroom..."
+  verify_headroom || true
 
   cat <<EOF
 

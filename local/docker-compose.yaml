@@ -1,16 +1,58 @@
-# MacBook — MCP servers that need your filesystem.
+# MacBook — Headroom proxy, MCP servers that need your filesystem.
 #
 #   cp .env.example .env
 #   docker compose up -d --build
 #
-# MCP endpoints:
+# Endpoints:
+#   headroom:             http://127.0.0.1:8787
 #   code-graph:           http://127.0.0.1:5070/mcp
 #   knowledge-rag-code:   http://127.0.0.1:8180/mcp
+#
+# Headroom forwards to vLLM on the GPU host via VLLM_UPSTREAM_URL (default:
+# host.docker.internal:8000 — start SSH tunnel -L 8000:127.0.0.1:8000 first).
 #
 # Serena runs natively via uvx (Claude Code, Codex) — not in Docker.
 # See local/README.md and local/codex.serena.example.toml.
 
 services:
+  headroom-proxy:
+    build: ./headroom
+    image: headroom-local:latest
+    container_name: headroom-ai
+    working_dir: /workspace
+    command:
+      - "--port"
+      - "8787"
+      - "--anthropic-api-url"
+      - "${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}"
+      - "--openai-api-url"
+      - "${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}/v1"
+      - "--code-aware"
+      - "--code-graph"
+      - "--no-ccr-inject-tool"
+    environment:
+      - HEADROOM_HOST=0.0.0.0
+      - HEADROOM_TELEMETRY=off
+      - HEADROOM_CODE_AWARE_ENABLED=1
+      - HOME=/tmp/headroom-home
+      - ANTHROPIC_TARGET_API_URL=${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}
+      - OPENAI_TARGET_API_URL=${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}/v1
+    volumes:
+      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspace:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "127.0.0.1:8787:8787"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8787/livez || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - local
+
   code-graph-mcp:
     build: ./code-graph-mcp
     image: code-graph-mcp:latest
