@@ -10,6 +10,8 @@ server:
   port: 8180
 
 documents:
+  # Only formats with built-in parsers in knowledge-rag 4.x (see Supported Formats in docs).
+  # .rs, .dart, .yaml, .toml, .sh, .go, etc. are NOT parsed — use serena/code-graph for those.
   supported_formats:
     - ".md"
     - ".txt"
@@ -19,31 +21,13 @@ documents:
     - ".jsx"
     - ".ts"
     - ".tsx"
-    - ".go"
-    - ".rs"
-    - ".java"
-    - ".kt"
-    - ".swift"
-    - ".dart"
+    - ".c"
+    - ".h"
     - ".cpp"
     - ".cc"
     - ".cxx"
-    - ".h"
-    - ".hpp"
-    - ".c"
-    - ".cs"
-    - ".rb"
-    - ".php"
-    - ".lua"
-    - ".sh"
-    - ".yaml"
-    - ".yml"
     - ".json"
-    - ".toml"
-    - ".sql"
-    - ".proto"
-    - ".graphql"
-    - ".dockerfile"
+    - ".xml"
   exclude_patterns:
     - "**/.git/**"
     - "**/node_modules/**"
@@ -56,6 +40,10 @@ documents:
     - "**/vendor/**"
     - "**/.idea/**"
     - "**/.cursor/**"
+    - "**/.dart_tool/**"
+    - "**/Pods/**"
+    - "**/macos/Pods/**"
+    - "**/ios/Pods/**"
     - "**/faiss_data_store/**"
     - "**/chroma_db/**"
     - "**/models_cache/**"
@@ -63,6 +51,8 @@ documents:
     - "**/package-lock.json"
     - "**/yarn.lock"
     - "**/Cargo.lock"
+    - "**/frb_generated*.dart"
+    - "**/*-umbrella.h"
   chunking:
     chunk_size: 1200
     chunk_overlap: 200
