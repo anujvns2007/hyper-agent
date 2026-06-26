@@ -19,9 +19,8 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 | Service | Port | Purpose |
 |---------|------|---------|
-| **headroom-proxy** | 8787 | Code-aware LLM proxy → remote vLLM; **code-graph** on `PROJECT_ROOT` |
+| **headroom-proxy** | 8787 | Code-aware LLM proxy → remote vLLM; **code-graph** + **cross-agent memory** on `PROJECT_ROOT` |
 | **code-graph-mcp** | 5070 | Call-graph MCP (HTTP) |
-| **knowledge-rag-code** | 8180 | Semantic search over repo |
 
 ## Quick start
 
@@ -31,12 +30,6 @@ cp .env.example .env   # set PROJECT_ROOT; optional VLLM_UPSTREAM_URL
 docker compose up -d --build
 ```
 
-**NVIDIA GPU** — set `KNOWLEDGE_RAG_GPU=1` in `.env` (or pass on the command line), then rebuild:
-
-```bash
-KNOWLEDGE_RAG_GPU=1 docker compose up -d --build
-```
-
 Headroom forwards to vLLM on the GPU host. Start the SSH tunnel first so `host.docker.internal:8000` reaches vLLM:
 
 ```bash
@@ -44,6 +37,10 @@ ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host
 ```
 
 Or set `VLLM_UPSTREAM_URL` to a Tailscale/LAN address in `.env`.
+
+### Headroom memory & learning
+
+Headroom runs with `--memory --learn`: Claude, Codex, and any client using the same proxy share a persistent memory store (facts injected into context + `memory_save` / `memory_search` tools). Live traffic learning extracts repeated patterns and persists them after enough observations (default `min-evidence: 5`). Data is stored in `local/headroom/data/` (not in your repo — `/workspace` is read-only). Project scope follows `PROJECT_ROOT` via `--memory-project-root /workspace`.
 
 ## Claude Code
 

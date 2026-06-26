@@ -2,12 +2,10 @@
 #
 #   cp .env.example .env
 #   docker compose up -d --build
-#   KNOWLEDGE_RAG_GPU=1 docker compose up -d --build   # NVIDIA CUDA embeddings
 #
 # Endpoints:
 #   headroom:             http://127.0.0.1:8787
 #   code-graph:           http://127.0.0.1:5070/mcp
-#   knowledge-rag-code:   http://127.0.0.1:8180/mcp
 #
 # Headroom forwards to vLLM on the GPU host via VLLM_UPSTREAM_URL (default:
 # host.docker.internal:8000 — start SSH tunnel -L 8000:127.0.0.1:8000 first).
@@ -30,16 +28,23 @@ services:
       - "${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}/v1"
       - "--code-aware"
       - "--code-graph"
+      - "--memory"
+      - "--learn"
+      - "--memory-project-root"
+      - "/workspace"
       - "--no-ccr-inject-tool"
     environment:
       - HEADROOM_HOST=0.0.0.0
       - HEADROOM_TELEMETRY=off
       - HEADROOM_CODE_AWARE_ENABLED=1
+      - HEADROOM_MEMORY_DB_PATH=/data/headroom/memory.db
+      - HEADROOM_MEMORY_PROJECT_ROOT=/workspace
       - HOME=/tmp/headroom-home
       - ANTHROPIC_TARGET_API_URL=${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}
       - OPENAI_TARGET_API_URL=${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}/v1
     volumes:
       - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspace:ro
+      - ./headroom/data:/data/headroom
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:
@@ -74,42 +79,6 @@ services:
       timeout: 15s
       retries: 25
       start_period: 120s
-    restart: unless-stopped
-    networks:
-      - local
-
-  knowledge-rag-code:
-    build:
-      context: ./knowledge-rag-code
-      args:
-        KNOWLEDGE_RAG_GPU: ${KNOWLEDGE_RAG_GPU:-0}
-    image: knowledge-rag-code:latest
-    container_name: knowledge-rag-code
-    environment:
-      KNOWLEDGE_RAG_GPU: ${KNOWLEDGE_RAG_GPU:-0}
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: ${KNOWLEDGE_RAG_GPU:-0}
-              capabilities: [gpu]
-    volumes:
-      - ./knowledge-rag-code/config.yaml:/app/config.yaml:ro
-      - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/app/documents:ro
-      - ./knowledge-rag-code/data:/app/data
-    ports:
-      - "8180:8180"
-    healthcheck:
-      test:
-        [
-          "CMD-SHELL",
-          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',8180),2); s.close()\"",
-        ]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 180s
     restart: unless-stopped
     networks:
       - local

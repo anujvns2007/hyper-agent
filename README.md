@@ -2,7 +2,7 @@
 
 Docker Compose setup for coding agents (Claude Code, Codex) with **inference on a GPU host** and **code-aware tools on your MacBook**.
 
-Your source code stays on the Mac. The Mac runs Headroom (code-aware compression + code-graph), MCP servers, and repo indexes. The GPU machine runs vLLM and a searchable index of **public documentation**.
+Your source code stays on the Mac. The Mac runs Headroom (code-aware compression + code-graph), MCP servers, and repo indexes. The GPU machine runs vLLM and a searchable index of **public documentation** (`knowledge-rag-docs`).
 
 ## Architecture
 
@@ -12,16 +12,13 @@ flowchart TB
     IDE["Claude Code / Codex"]
     SER["Serena (native uvx stdio)"]
     HR["headroom-proxy :8787"]
-    KRC["knowledge-rag-code :8180"]
     REPO["PROJECT_ROOT"]
     CG["code-graph-mcp :5070"]
 
     REPO --> SER
-    REPO --> KRC
     REPO --> CG
     REPO --> HR
     IDE --> SER
-    IDE --> KRC
     IDE --> CG
     IDE --> HR
   end
@@ -57,7 +54,7 @@ agent/
 │   ├── docker-compose.yaml
 │   ├── headroom/
 │   ├── code-graph-mcp/
-│   └── knowledge-rag-code/
+│   └── headroom/
 └── remote-gpu/               ← run on Linux GPU host (LLM + docs)
     ├── README.md
     ├── docker-compose.yaml
@@ -123,7 +120,6 @@ Register MCP servers in `~/.claude.json` separately (`claude mcp add ... -s user
 | knowledge-rag-docs | GPU | 8179 | `remote-gpu/` |
 | serena | Mac | — | native `uvx` stdio — see `local/codex.serena.example.toml` |
 | code-graph-mcp | Mac | 5070 | `local/` |
-| knowledge-rag-code | Mac | 8180 | `local/` |
 
 ## End-to-end smoke test
 
@@ -131,15 +127,15 @@ Register MCP servers in `~/.claude.json` separately (`claude mcp add ... -s user
 # Mac — containers stable
 cd local && docker compose ps
 
-# Mac — Headroom + MCP ports
+# Mac — Headroom + code-graph
 curl -s http://127.0.0.1:8787/livez
-python3 -c "import socket; socket.create_connection(('127.0.0.1',8180),2).close(); print('knowledge-rag-code: ok')"
+python3 -c "import socket; socket.create_connection(('127.0.0.1',5070),2).close(); print('code-graph-mcp: ok')"
 
 # GPU via tunnel
 curl -s http://127.0.0.1:8000/v1/models
 ```
 
-Ask the agent to search your repo (`knowledge-rag-code`) and look up a library doc (`knowledge-rag-docs`).
+Ask the agent to explore your repo (`code-graph`) and look up library docs (`knowledge-rag-docs`).
 
 ## Further reading
 

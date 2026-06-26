@@ -2,7 +2,7 @@
 # Configure Claude Code for this stack via ~/.claude/settings.json.
 #
 # Assumes:
-#   - local/ containers (Headroom, code-graph, knowledge-rag-code) are running
+#   - local/ containers (Headroom, code-graph) are running
 #   - remote-gpu (vLLM, knowledge-rag-docs) runs on a remote GPU host
 #   - SSH port forwarding for vLLM and docs RAG:
 #       ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host
@@ -82,7 +82,6 @@ Start a session from the repo root:
 
 Register MCP servers separately (global user scope):
   claude mcp add serena -s user -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context claude-code --project-from-cwd --enable-web-dashboard false --open-web-dashboard false --log-level ERROR
-  claude mcp add --transport http knowledge-rag-code http://127.0.0.1:8180/mcp -s user
   claude mcp add --transport http code-graph http://127.0.0.1:5070/mcp -s user
   claude mcp add --transport http knowledge-rag-docs http://127.0.0.1:8179/mcp -s user
 EOF

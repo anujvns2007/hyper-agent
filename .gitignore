@@ -14,10 +14,10 @@ remote-gpu/knowledge-rag-docs/data/*
 !remote-gpu/knowledge-rag-docs/data/.gitkeep
 
 # --- local: code index + graph cache ---
-local/knowledge-rag-code/data/*
-!local/knowledge-rag-code/data/.gitkeep
 local/code-graph-mcp/data/*
 !local/code-graph-mcp/data/.gitkeep
+local/headroom/data/*
+!local/headroom/data/.gitkeep
 local/serena-mcp/   # legacy Docker Serena logs (sudo rm -rf to remove)
 
 # OS / editor
