@@ -14,6 +14,7 @@
 set -euo pipefail
 
 HEADROOM_URL="${HEADROOM_URL:-http://127.0.0.1:8787}"
+HEADROOM_MCP_URL="${HEADROOM_MCP_URL:-http://127.0.0.1:8790/mcp}"
 ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-headroom-local}"
 MODEL="${ANTHROPIC_MODEL:-qwen3.6}"
 USER_SETTINGS="${CLAUDE_USER_SETTINGS:-$HOME/.claude/settings.json}"
@@ -67,8 +68,15 @@ verify_headroom() {
   return 1
 }
 
+install_headroom_mcp() {
+  log "Registering Headroom MCP (HTTP → headroom-ai :8788/mcp)"
+  claude mcp remove headroom -s user 2>/dev/null || true
+  claude mcp add --transport http headroom "$HEADROOM_MCP_URL" -s user
+}
+
 main() {
   write_user_settings
+  install_headroom_mcp
   log "Verifying local Headroom..."
   verify_headroom || true
 
@@ -77,10 +85,13 @@ main() {
 Done. Claude Code user settings written to:
   $USER_SETTINGS
 
+Headroom MCP registered at $HEADROOM_MCP_URL (runs inside headroom-ai container with the proxy).
+Restart Claude Code if it was already running, then verify with /mcp inside a session.
+
 Start a session from the repo root:
   claude
 
-Register MCP servers separately (global user scope):
+Other MCP servers (global user scope, if not already registered):
   claude mcp add serena -s user -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context claude-code --project-from-cwd --enable-web-dashboard false --open-web-dashboard false --log-level ERROR
   claude mcp add --transport http code-graph http://127.0.0.1:5070/mcp -s user
   claude mcp add --transport http knowledge-rag-docs http://127.0.0.1:8179/mcp -s user

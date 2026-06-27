@@ -5,6 +5,7 @@
 #
 # Endpoints:
 #   headroom:             http://127.0.0.1:8787
+#   headroom MCP:         http://127.0.0.1:8790/mcp
 #   code-graph:           http://127.0.0.1:5070/mcp
 #
 # Headroom forwards to vLLM on the GPU host via VLLM_UPSTREAM_URL (default:
@@ -35,6 +36,8 @@ services:
       - "--no-ccr-inject-tool"
     environment:
       - HEADROOM_HOST=0.0.0.0
+      - HEADROOM_PORT=8787
+      - HEADROOM_MCP_PORT=8790
       - HEADROOM_TELEMETRY=off
       - HEADROOM_CODE_AWARE_ENABLED=1
       - HEADROOM_MEMORY_DB_PATH=/data/headroom/memory.db
@@ -49,6 +52,7 @@ services:
       - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:8787:8787"
+      - "127.0.0.1:8790:8790"
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8787/livez || exit 1"]
       interval: 15s

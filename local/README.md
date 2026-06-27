@@ -11,7 +11,7 @@ Install once:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-**Claude Code** — run `local/scripts/setup-claude-mcp.sh` to write Headroom/model env to `~/.claude/settings.json`. Serena hooks live in `.claude/settings.json`.
+**Claude Code** — run `local/scripts/setup-claude-mcp.sh` to write Headroom/model env to `~/.claude/settings.json` and register Headroom MCP at `http://127.0.0.1:8790/mcp`. Serena hooks live in `.claude/settings.json`.
 
 **Codex** — add `local/codex.serena.example.toml` to `~/.codex/config.toml`. Point Headroom at `http://127.0.0.1:8787` in your Codex provider config.
 
@@ -19,7 +19,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 | Service | Port | Purpose |
 |---------|------|---------|
-| **headroom-proxy** | 8787 | Code-aware LLM proxy → remote vLLM; **code-graph** + **cross-agent memory** on `PROJECT_ROOT` |
+| **headroom-proxy** | 8787 / 8790 | LLM proxy + Headroom MCP (`/mcp`) — memory, code-graph, compress/retrieve tools |
 | **code-graph-mcp** | 5070 | Call-graph MCP (HTTP) |
 
 ## Quick start
