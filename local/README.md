@@ -42,6 +42,8 @@ Or set `VLLM_UPSTREAM_URL` to a Tailscale/LAN address in `.env`.
 
 Headroom runs with `--memory --learn`: Claude, Codex, and any client using the same proxy share a persistent memory store (facts injected into context + `memory_save` / `memory_search` tools). Live traffic learning extracts repeated patterns and persists them after enough observations (default `min-evidence: 5`). Data is stored in `local/headroom/data/` (not in your repo — `/workspace` is read-only). Project scope follows `PROJECT_ROOT` via `--memory-project-root /workspace`.
 
+Memory embeddings use `Qdrant/all-MiniLM-L6-v2-onnx` from the host HuggingFace cache (`HF_CACHE`, default `~/.cache/huggingface`), mounted read-only into the container.
+
 ## Claude Code
 
 ```bash

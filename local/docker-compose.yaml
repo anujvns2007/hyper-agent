@@ -43,11 +43,15 @@ services:
       - HEADROOM_MEMORY_DB_PATH=/data/headroom/memory.db
       - HEADROOM_MEMORY_PROJECT_ROOT=/workspace
       - HOME=/tmp/headroom-home
+      - HF_HOME=/opt/headroom-hf-cache
+      - HF_HUB_DISABLE_XET=1
+      - HF_HUB_OFFLINE=1
       - ANTHROPIC_TARGET_API_URL=${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}
       - OPENAI_TARGET_API_URL=${VLLM_UPSTREAM_URL:-http://host.docker.internal:8000}/v1
     volumes:
       - ${PROJECT_ROOT:?Set PROJECT_ROOT in .env}:/workspace:ro
       - ./headroom/data:/data/headroom
+      - ${HF_CACHE:-${HOME}/.cache/huggingface}:/opt/headroom-hf-cache:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     ports:

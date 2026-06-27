@@ -1,4 +1,4 @@
- FROM python:3.13-slim-bookworm
+FROM python:3.13-slim-bookworm
 
 ARG HEADROOM_VERSION=0.27.0
 
