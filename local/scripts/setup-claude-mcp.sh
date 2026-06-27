@@ -3,9 +3,10 @@
 #
 # Assumes:
 #   - local/ containers (Headroom, code-graph) are running
-#   - remote-gpu (vLLM, knowledge-rag-docs) runs on a remote GPU host
-#   - SSH port forwarding for vLLM and docs RAG:
-#       ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host
+#   - remote-gpu (vLLM) runs on a remote GPU host
+#   - knowledge-rag-docs runs natively on Mac (bash local/scripts/run-knowledge-rag-docs.sh)
+#   - SSH port forwarding for vLLM only:
+#       ssh -N -L 8000:127.0.0.1:8000 user@gpu-host
 #
 # Usage:
 #   bash local/scripts/setup-claude-mcp.sh
@@ -64,7 +65,7 @@ verify_headroom() {
   echo "  Warning: Headroom not reachable at $HEADROOM_URL" >&2
   echo "  Start local stack: cd local && docker compose up -d --build" >&2
   echo "  Ensure vLLM tunnel is up for Headroom upstream:" >&2
-  echo "    ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host" >&2
+  echo "    ssh -N -L 8000:127.0.0.1:8000 user@gpu-host" >&2
   return 1
 }
 

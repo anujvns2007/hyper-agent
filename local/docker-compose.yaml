@@ -6,10 +6,12 @@
 # Endpoints:
 #   headroom:             http://127.0.0.1:8787
 #   headroom MCP:         http://127.0.0.1:8790/mcp
+#   knowledge-rag-docs:   http://127.0.0.1:8179/mcp  (native Mac — not in Compose)
 #   code-graph:           http://127.0.0.1:5070/mcp
 #
 # Headroom forwards to vLLM on the GPU host via VLLM_UPSTREAM_URL (default:
 # host.docker.internal:8000 — start SSH tunnel -L 8000:127.0.0.1:8000 first).
+# knowledge-rag-docs runs natively on the Mac host (see local/scripts/).
 #
 # Serena runs natively via uvx (Claude Code, Codex) — not in Docker.
 # See local/README.md and local/codex.serena.example.toml.

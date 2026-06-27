@@ -1,6 +1,6 @@
 # Local Stack (MacBook)
 
-Docker Compose services on your Mac: **Headroom** (code-aware + code-graph), and MCP servers that need **direct access to your source tree**.
+Docker Compose for **Headroom** and **code-graph**; native tools for Serena and **knowledge-rag-docs**.
 
 ## Serena (native uvx)
 
@@ -15,25 +15,35 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 **Codex** — add `local/codex.serena.example.toml` to `~/.codex/config.toml`. Point Headroom at `http://127.0.0.1:8787` in your Codex provider config.
 
-## Services (Docker)
+## Services
 
-| Service | Port | Purpose |
-|---------|------|---------|
-| **headroom-proxy** | 8787 / 8790 | LLM proxy + Headroom MCP (`/mcp`) — memory, code-graph, compress/retrieve tools |
-| **code-graph-mcp** | 5070 | Call-graph MCP (HTTP) |
+| Service | How | Port | Purpose |
+|---------|-----|------|---------|
+| **headroom-proxy** | Docker | 8787 / 8790 | LLM proxy + Headroom MCP |
+| **code-graph-mcp** | Docker | 5070 | Call-graph MCP |
+| **knowledge-rag-docs** | **Native** | 8179 | Public docs RAG (ONNX on Apple Silicon) |
 
 ## Quick start
 
 ```bash
 cd local
 cp .env.example .env   # set PROJECT_ROOT; optional VLLM_UPSTREAM_URL
+
+# Docker stack (Headroom + code-graph)
 docker compose up -d --build
+
+# Native docs RAG (one-time setup, then run)
+bash scripts/setup-knowledge-rag-docs.sh
+bash scripts/sync-docs.sh
+bash scripts/run-knowledge-rag-docs.sh --background
 ```
 
-Headroom forwards to vLLM on the GPU host. Start the SSH tunnel first so `host.docker.internal:8000` reaches vLLM:
+First run: `sync-docs.sh` downloads public docs (Flutter, LiveKit, Rust, …) from `remote-gpu/knowledge-rag-docs/fetch-docs-manifest.tsv`, then `knowledge-rag` indexes them on native ARM CPU (`bge-large-en-v1.5`, 1024D). First index can take a while — unload heavy Ollama models during reindex if memory is tight.
+
+Headroom forwards to vLLM on the GPU host. Start the SSH tunnel if using `host.docker.internal:8000`:
 
 ```bash
-ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host
+ssh -N -L 8000:127.0.0.1:8000 user@gpu-host
 ```
 
 Or set `VLLM_UPSTREAM_URL` to a Tailscale/LAN address in `.env`.
@@ -47,20 +57,54 @@ Memory embeddings use `Qdrant/all-MiniLM-L6-v2-onnx` from the host HuggingFace c
 ## Claude Code
 
 ```bash
-ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host
+ssh -N -L 8000:127.0.0.1:8000 user@gpu-host   # vLLM only
 cd local && docker compose up -d --build
-bash local/scripts/setup-claude-mcp.sh   # writes ~/.claude/settings.json
+bash scripts/setup-knowledge-rag-docs.sh      # once
+bash scripts/run-knowledge-rag-docs.sh --background
+bash scripts/setup-claude-mcp.sh              # writes ~/.claude/settings.json
 claude    # from repo root
 ```
 
-See `.claude/settings.json` (Serena hooks) and `local/scripts/setup-claude-mcp.sh`.
+## knowledge-rag-docs (native)
+
+| Path | Purpose |
+|------|---------|
+| `knowledge-rag-docs/config.yaml` | Embedding model, chunking, categories |
+| `knowledge-rag-docs/documents/` | Fetched public docs |
+| `knowledge-rag-docs/data/` | Chroma index + logs |
+| `knowledge-rag-docs/.venv/` | Python venv (created by setup script) |
+
+**Scripts**
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/setup-knowledge-rag-docs.sh` | Create venv, `pip install knowledge-rag[server]` |
+| `scripts/sync-docs.sh` | Fetch docs from manifest (re-run when manifest changes) |
+| `scripts/run-knowledge-rag-docs.sh` | Foreground server |
+| `scripts/run-knowledge-rag-docs.sh --background` | Daemon on `:8179` |
+
+MCP URL: `http://127.0.0.1:8179/mcp`
+
+**Reindex after model change**
+
+```bash
+kill "$(cat knowledge-rag-docs/data/knowledge-rag-docs.pid)" 2>/dev/null || true
+rm -rf knowledge-rag-docs/data/chroma_db knowledge-rag-docs/data/index_metadata.json
+bash scripts/run-knowledge-rag-docs.sh --background
+```
+
+**Index on GPU host, query on Mac** — index with `remote-gpu/` (CUDA `bge-large`), then rsync `data/` to `local/knowledge-rag-docs/data/` (embedding model + dimensions must match).
 
 ## Codex
 
-Add Serena via `local/codex.serena.example.toml`. Configure Headroom provider with `base_url = "http://127.0.0.1:8787"`. `knowledge-rag-docs` requires the SSH tunnel to the GPU host (port 8179).
+Add Serena via `local/codex.serena.example.toml`. Configure Headroom provider with `base_url = "http://127.0.0.1:8787"`. Register `knowledge-rag-docs` at `http://127.0.0.1:8179/mcp`.
 
 ## Troubleshooting
 
 **Headroom unhealthy** — Check `docker logs headroom-ai`. Ensure vLLM tunnel is up (`curl -s http://127.0.0.1:8000/v1/models` from Mac host).
 
-**Headroom cannot reach vLLM** — Default upstream is `http://host.docker.internal:8000`. On Linux (non-Docker Desktop), `extra_hosts: host-gateway` is set in compose. Verify tunnel or set `VLLM_UPSTREAM_URL` to the GPU's reachable IP.
+**Headroom cannot reach vLLM** — Default upstream is `http://host.docker.internal:8000`. Verify tunnel or set `VLLM_UPSTREAM_URL` to the GPU's reachable IP.
+
+**knowledge-rag-docs not listening** — Check `knowledge-rag-docs/data/knowledge-rag-docs.log`. Ensure setup ran and docs exist: `ls knowledge-rag-docs/documents/`. Test: `curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:8179/mcp`.
+
+**Slow first index** — Normal on CPU with ~50 llms.txt sources. Stop Ollama during reindex, or build index on `remote-gpu` and rsync `data/`.
