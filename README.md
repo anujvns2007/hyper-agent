@@ -2,7 +2,7 @@
 
 Docker Compose setup for coding agents (Claude Code, Codex) with **inference on a GPU host** and **code-aware tools on your MacBook**.
 
-Your source code stays on the Mac. The Mac runs Headroom (code-aware compression + code-graph), MCP servers, repo indexes, and **public documentation RAG** (`knowledge-rag-docs`). The GPU machine runs vLLM only.
+Your source code stays on the Mac. The Mac runs Headroom (code-aware compression + code-graph), MCP servers, repo indexes, and **public documentation RAG** (`knowledge-rag-docs`). The GPU machine runs vLLM and optionally the same docs RAG stack (CUDA embeddings) — manifest and config are shared.
 
 ## Architecture
 
@@ -33,6 +33,7 @@ flowchart TB
 
   subgraph gpu["GPU host — remote-gpu/"]
     VLLM["vLLM :8000"]
+    KRDGPU["knowledge-rag-docs :8179\n(Docker, optional)"]
   end
 
   HR --> T8000
@@ -52,7 +53,7 @@ agent/
 │   ├── headroom/
 │   ├── code-graph-mcp/
 │   └── knowledge-rag-docs/
-└── remote-gpu/               ← run on Linux GPU host (vLLM only)
+└── remote-gpu/               ← run on Linux GPU host (vLLM + optional docs RAG)
     ├── README.md
     ├── docker-compose.yaml
     └── knowledge-rag-docs/
@@ -66,6 +67,7 @@ agent/
 cd remote-gpu
 cp .env.example .env
 docker compose up -d --build
+bash scripts/refresh-knowledge-rag-docs.sh --reindex   # first time or after manifest changes
 ```
 
 See [remote-gpu/README.md](remote-gpu/README.md) for details, ports, and troubleshooting.
@@ -115,8 +117,9 @@ Register MCP servers in `~/.claude.json` separately (`claude mcp add ... -s user
 | Component | Host | Port | Folder |
 |-----------|------|------|--------|
 | vLLM | GPU | 8000 | `remote-gpu/` |
+| knowledge-rag-docs (optional) | GPU (Docker) | 8179 | `remote-gpu/knowledge-rag-docs/` |
 | Headroom proxy | Mac | 8787 | `local/` |
-| knowledge-rag-docs | Mac (native) | 8179 | `local/knowledge-rag-docs/` |
+| knowledge-rag-docs (default) | Mac (native) | 8179 | `local/knowledge-rag-docs/` |
 | serena | Mac | — | native `uvx` stdio — see `local/codex.serena.example.toml` |
 | code-graph-mcp | Mac | 5070 | `local/` |
 

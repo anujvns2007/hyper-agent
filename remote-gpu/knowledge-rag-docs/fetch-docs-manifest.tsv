@@ -14,7 +14,12 @@ flutter	https://docs.flutter.dev/llms.txt	llms.txt
 dart	https://dart.dev/guides/llms.txt	llms.txt
 go	https://go.dev/ref/spec.md	spec.md
 go	https://go.dev/doc/effective_go.md	effective_go.md
+go	https://go.dev/doc/go1.25.md	go1.25.md
 go	https://go.dev/doc/go1.24.md	go1.24.md
+go	https://go.dev/doc/tutorial/getting-started.md	getting-started.md
+go	https://go.dev/doc/modules/managing-dependencies.md	modules-managing-dependencies.md
+go	https://go.dev/doc/modules/gomod-ref.md	gomod-ref.md
+go	https://go.dev/doc/go_mem.md	go_mem.md
 rust	https://raw.githubusercontent.com/rust-lang/rust-by-example/master/src/SUMMARY.md	rust-by-example-summary.md
 rust	https://raw.githubusercontent.com/rust-lang/reference/master/src/introduction.md	reference-intro.md
 rust	https://raw.githubusercontent.com/rust-lang/book/main/README.md	book-readme.md
@@ -28,12 +33,31 @@ pqc	https://raw.githubusercontent.com/open-quantum-safe/liboqs/main/README.md	li
 pqc	https://raw.githubusercontent.com/open-quantum-safe/oqs-provider/main/README.md	oqs-provider-readme.md
 pqc	https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-208.pdf	NIST.SP.800-208.pdf
 pqc	https://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-57pt1r5.pdf	NIST.SP.800-57pt1r5.pdf
-# --- jira / atlassian ---
-jira	https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/index.md	rest-api-intro.md
+# --- jira / atlassian / bitbucket ---
+jira	https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/index.md	rest-api-v3-intro.md
+jira	https://developer.atlassian.com/cloud/jira/software/rest/intro/index.md	jira-software-rest-intro.md
 jira	https://developer.atlassian.com/platform/forge/llms.txt	forge-llms.txt
+bitbucket	https://developer.atlassian.com/cloud/bitbucket/rest/intro/index.md	rest-api-intro.md
+# --- git ---
+git	https://raw.githubusercontent.com/git/git/master/Documentation/user-manual.adoc	user-manual.adoc
+git	https://raw.githubusercontent.com/git/git/master/Documentation/gittutorial.adoc	gittutorial.adoc
+git	https://raw.githubusercontent.com/git/git/master/Documentation/giteveryday.adoc	giteveryday.adoc
+git	https://raw.githubusercontent.com/git/git/master/Documentation/git-commit.adoc	git-commit.adoc
+git	https://raw.githubusercontent.com/git/git/master/Documentation/git-merge.adoc	git-merge.adoc
+git	https://raw.githubusercontent.com/git/git/master/Documentation/git-branch.adoc	git-branch.adoc
+git	https://raw.githubusercontent.com/git/git/master/Documentation/git-rebase.adoc	git-rebase.adoc
 # --- media / streaming ---
 gstreamer	https://raw.githubusercontent.com/GStreamer/gstreamer/main/README.md	gstreamer-readme.md
 gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/README.md	gst-docs-readme.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/index.md	index.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/application-development/index.md	app-dev-index.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/application-development/basics/index.md	basics-index.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/application-development/basics/elements.md	elements.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/application-development/basics/pads.md	pads.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/application-development/basics/bins.md	bins.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/application-development/basics/helloworld.md	helloworld.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/application-development/highlevel/playback-components.md	playback-components.md
+gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/plugin-development/index.md	plugin-dev-index.md
 gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/tutorials/basic/hello-world.md	hello-world.md
 gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/markdown/tutorials/index.md	tutorials-index.md
 ffmpeg	https://ffmpeg.org/ffmpeg.html	ffmpeg-manual.txt
@@ -56,3 +80,39 @@ helm	https://raw.githubusercontent.com/helm/charts/master/README.md	charts-readm
 helm	https://helm.sh/docs/topics/charts/	charts-guide.txt
 helm	https://helm.sh/docs/chart_template_guide/getting_started/	chart-template-getting-started.txt
 helm	https://helm.sh/docs/intro/quickstart/	quickstart.txt
+# --- databases (postgres llms-full is above) ---
+database	https://redis.io/llms.txt	redis-llms.txt
+database	https://docs.sqlalchemy.org/en/latest/llms.txt	sqlalchemy-llms.txt
+database	https://www.sqlite.org/lang.html	sqlite-lang.html
+database	https://www.sqlite.org/lang_select.html	sqlite-lang-select.html
+database	https://www.sqlite.org/wal.html	sqlite-wal.html
+# --- matrix protocol ---
+matrix	https://raw.githubusercontent.com/matrix-org/matrix-spec/main/content/_index.md	spec-overview.md
+matrix	https://raw.githubusercontent.com/matrix-org/matrix-spec/main/content/client-server-api/_index.md	client-server-api.md
+matrix	https://raw.githubusercontent.com/matrix-org/matrix-spec/main/content/server-server-api.md	server-server-api.md
+matrix	https://raw.githubusercontent.com/matrix-org/matrix-spec/main/content/olm-megolm/olm.md	olm.md
+matrix	https://raw.githubusercontent.com/matrix-org/matrix-spec/main/content/olm-megolm/megolm.md	megolm.md
+matrix	https://raw.githubusercontent.com/matrix-org/matrix-spec/main/content/rooms/_index.md	rooms.md
+# --- messaging ---
+nats	https://docs.nats.io/llms.txt	llms.txt
+nats	https://docs.nats.io/llms-full.txt	llms-full.txt
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/queues.md	queues.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/exchanges.md	exchanges.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/amqp.md	amqp.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/consumers.md	consumers.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/publishers/index.md	publishers.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/streams.md	streams.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/clustering.md	clustering.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/reliability.md	reliability.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/configure.md	configure.md
+rabbitmq	https://raw.githubusercontent.com/rabbitmq/rabbitmq-website/main/docs/cli.md	cli.md
+# --- HTTP protocols (RFC 911x series) ---
+http	https://www.rfc-editor.org/rfc/rfc9110.txt	rfc9110-http-semantics.txt
+http	https://www.rfc-editor.org/rfc/rfc9112.txt	rfc9112-http11.txt
+http	https://www.rfc-editor.org/rfc/rfc9113.txt	rfc9113-http2.txt
+http	https://www.rfc-editor.org/rfc/rfc9114.txt	rfc9114-http3.txt
+# --- networking (TCP/IP, QUIC) ---
+networking	https://www.rfc-editor.org/rfc/rfc791.txt	rfc791-ipv4.txt
+networking	https://www.rfc-editor.org/rfc/rfc768.txt	rfc768-udp.txt
+networking	https://www.rfc-editor.org/rfc/rfc9293.txt	rfc9293-tcp.txt
+networking	https://www.rfc-editor.org/rfc/rfc9000.txt	rfc9000-quic.txt

@@ -117,13 +117,32 @@ curl -s -o /dev/null -w "docs-rag: %{http_code}\n" --max-time 3 http://127.0.0.1
 remote-gpu/
 ├── docker-compose.yaml
 ├── .env.example
+├── scripts/
+│   └── refresh-knowledge-rag-docs.sh   # fetch manifest + restart/reindex
 └── knowledge-rag-docs/
     ├── config.yaml
-    ├── fetch-docs-manifest.tsv
+    ├── fetch-docs-manifest.tsv   # shared with Mac — local/scripts/sync-docs.sh uses this file
     ├── fetch-docs.sh
     ├── documents/             # downloaded docs (gitignored)
     └── data/                  # vector index (gitignored)
 ```
+
+## Documentation index (manifest categories)
+
+`fetch-docs-manifest.tsv` is the **single source of truth** for both Mac (native) and GPU (Docker). Categories include:
+
+| Category | Examples |
+|----------|----------|
+| **Languages** | python, typescript, javascript, go, rust, cpp, dart/flutter |
+| **Web / app** | react, nextjs, fastapi |
+| **Infra** | docker, kubernetes, helm |
+| **Data** | postgres, redis, database (SQLite, SQLAlchemy) |
+| **Messaging** | matrix, nats, rabbitmq |
+| **Protocols** | http (RFC 911x), networking (TCP/UDP/QUIC), security-protocols, pqc |
+| **Media** | gstreamer, ffmpeg, webrtc, livekit |
+| **Dev tools** | git, jira, bitbucket |
+
+Search hints for each category are in `knowledge-rag-docs/config.yaml` → `category_mappings`.
 
 ## Add documentation sources
 
@@ -142,6 +161,20 @@ docker compose exec docs-sync /fetch-docs.sh
 
 Categories map to search hints in `knowledge-rag-docs/config.yaml` → `category_mappings`.
 
+After editing the manifest or `config.yaml`, refresh on the GPU host:
+
+```bash
+bash scripts/refresh-knowledge-rag-docs.sh
+```
+
+Use `--reindex` when chunking, embedding model, or dimensions change (wipes Chroma and rebuilds):
+
+```bash
+bash scripts/refresh-knowledge-rag-docs.sh --reindex
+```
+
+On Mac, run `bash local/scripts/sync-docs.sh` and restart native knowledge-rag-docs (same manifest file).
+
 ## Customization
 
 **Change LLM model** — edit `vllm-backend.command` in `docker-compose.yaml`, then:
@@ -153,10 +186,22 @@ docker compose up -d --build vllm-backend
 **Refresh docs now**
 
 ```bash
+bash scripts/refresh-knowledge-rag-docs.sh
+```
+
+Or fetch only (no restart):
+
+```bash
 docker compose exec docs-sync /fetch-docs.sh
 ```
 
 **Wipe doc index and rebuild**
+
+```bash
+bash scripts/refresh-knowledge-rag-docs.sh --reindex
+```
+
+Or manually:
 
 ```bash
 docker compose stop knowledge-rag-docs

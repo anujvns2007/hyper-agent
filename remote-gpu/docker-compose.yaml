@@ -3,12 +3,16 @@
 #   cp .env.example .env   # optional: DOCS_SYNC_INTERVAL_SECONDS
 #   docker compose up -d --build
 #
+# After git pull (manifest/config changes):
+#   bash scripts/refresh-knowledge-rag-docs.sh
+#   bash scripts/refresh-knowledge-rag-docs.sh --reindex   # chunking/model change
+#
 # MacBook tunnel (from your laptop):
 #   ssh -N -L 8000:127.0.0.1:8000 -L 8179:127.0.0.1:8179 user@gpu-host
 #
 # Tunneled endpoints on Mac:
 #   vLLM (Headroom upstream):  http://127.0.0.1:8000
-#   knowledge-rag-docs:        http://127.0.0.1:8179/mcp
+#   knowledge-rag-docs:        http://127.0.0.1:8179/mcp  (optional — Mac may run native instead)
 #
 # Headroom runs locally — see local/docker-compose.yaml.
 

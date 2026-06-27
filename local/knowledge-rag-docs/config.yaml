@@ -25,6 +25,7 @@ documents:
     - ".md"
     - ".txt"
     - ".rst"
+    - ".adoc"
     - ".pdf"
     - ".py"
     - ".json"
@@ -55,19 +56,26 @@ category_mappings:
   nextjs: ["nextjs", "next"]
   postgres: ["postgres", "postgresql"]
   redis: ["redis"]
-  git: ["git"]
+  git: ["git", "github", "gitlab", "commit", "branch", "merge", "rebase", "clone", "pull request"]
+  bitbucket: ["bitbucket", "atlassian", "bb", "pipeline", "repository", "workspace", "pullrequest"]
   flutter: ["flutter", "dart", "widget", "mobile"]
   dart: ["dart", "flutter"]
-  go: ["go", "golang"]
+  go: ["go", "golang", "goroutine", "channel", "module", "gomod", "interface"]
   rust: ["rust", "cargo"]
   cpp: ["cpp", "c++", "cplusplus"]
   webrtc: ["webrtc", "rtc", "peerconnection", "ice", "stun", "turn"]
   security-protocols: ["security", "tls", "ssl", "dtls", "srtp", "oauth", "jwt", "rfc", "ietf", "ipsec", "ssh"]
   pqc: ["pqc", "post-quantum", "quantum", "kyber", "dilithium", "oqs", "nist"]
-  jira: ["jira", "atlassian", "forge"]
-  gstreamer: ["gstreamer", "gst", "pipeline", "pad", "element", "gstreamer"]
+  jira: ["jira", "atlassian", "forge", "jql", "issue", "sprint", "epic", "story", "board"]
+  gstreamer: ["gstreamer", "gst", "pipeline", "pad", "element", "gstreamer", "playbin", "caps", "buffer"]
   ffmpeg: ["ffmpeg", "ffprobe", "avcodec", "libav", "transcode", "mux", "demux"]
   livekit: ["livekit", "sfu", "room", "track", "egress", "ingress"]
+  database: ["database", "db", "sql", "sqlite", "redis", "sqlalchemy", "orm", "query", "table", "migration", "wal"]
+  matrix: ["matrix", "synapse", "homeserver", "m.room", "federation", "megolm", "olm", "_matrix", "room_id", "event"]
+  nats: ["nats", "jetstream", "subject", "subscription", "nats-server", "queue group", "nats.io"]
+  rabbitmq: ["rabbitmq", "amqp", "exchange", "binding", "routing key", "consumer", "publisher", "broker", "dead letter"]
+  http: ["http", "http1", "http2", "http3", "http/1", "http/2", "http/3", "quic", "h2", "h3", "header", "status code", "request", "response"]
+  networking: ["networking", "tcp", "udp", "ip", "ipv4", "socket", "dns", "packet", "subnet", "routing", "latency", "bandwidth", "mtu", "port"]
   kubernetes: ["kubernetes", "k8s", "kubectl", "pod", "deployment", "namespace", "cluster"]
   helm: ["helm", "chart", "values.yaml", "release", "template"]
   general: ["general", "misc"]

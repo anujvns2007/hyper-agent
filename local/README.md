@@ -93,7 +93,7 @@ rm -rf knowledge-rag-docs/data/chroma_db knowledge-rag-docs/data/index_metadata.
 bash scripts/run-knowledge-rag-docs.sh --background
 ```
 
-**Index on GPU host, query on Mac** — index with `remote-gpu/` (CUDA `bge-large`), then rsync `data/` to `local/knowledge-rag-docs/data/` (embedding model + dimensions must match).
+**Index on GPU host, query on Mac** — on the GPU machine after `git pull`, run `bash remote-gpu/scripts/refresh-knowledge-rag-docs.sh --reindex` (CUDA `bge-large`), then rsync `data/` to `local/knowledge-rag-docs/data/` (embedding model + dimensions must match).
 
 ## Codex
 
