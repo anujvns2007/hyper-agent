@@ -1,11 +1,13 @@
 # Local environment (paths)
 local/.env
 remote-gpu/.env
-local/claude.env
 
 .mcp.json
 .codex/
 .claude
+
+# Legacy native index (wrong cwd)
+/data/
 
 # --- remote-gpu: public docs index ---
 remote-gpu/knowledge-rag-docs/documents/*
@@ -20,15 +22,13 @@ local/knowledge-rag-docs/documents/*
 !local/knowledge-rag-docs/documents/.gitkeep
 local/knowledge-rag-docs/data/*
 !local/knowledge-rag-docs/data/.gitkeep
-local/knowledge-rag-docs/.venv/
-local/knowledge-rag-docs/data/knowledge-rag-docs.pid
-local/knowledge-rag-docs/data/knowledge-rag-docs.log
 local/headroom/data/*
 !local/headroom/data/.gitkeep
-local/serena-mcp/   # legacy Docker Serena logs (sudo rm -rf to remove)
 
 # OS / editor
 .DS_Store
+**/__MACOSX/
+**/._*
 Thumbs.db
 *.swp
 *.swo

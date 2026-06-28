@@ -6,15 +6,15 @@
 # Endpoints:
 #   headroom:             http://127.0.0.1:8787
 #   headroom MCP:         http://127.0.0.1:8790/mcp
-#   knowledge-rag-docs:   http://127.0.0.1:8179/mcp  (native Mac — not in Compose)
+#   knowledge-rag-docs:   http://127.0.0.1:8179/mcp  (Docker — CPU ONNX)
 #   code-graph:           http://127.0.0.1:5070/mcp
 #
 # Headroom forwards to vLLM on the GPU host via VLLM_UPSTREAM_URL (default:
 # host.docker.internal:8000 — start SSH tunnel -L 8000:127.0.0.1:8000 first).
-# knowledge-rag-docs runs natively on the Mac host (see local/scripts/).
+# knowledge-rag-docs mounts host documents/, data/, and config (see KNOWLEDGE_RAG_* in .env).
 #
 # Serena runs natively via uvx (Claude Code, Codex) — not in Docker.
-# See local/README.md and local/codex.serena.example.toml.
+# See local/README.md for Serena (native uvx) and Codex setup.
 
 services:
   headroom-proxy:
@@ -88,6 +88,32 @@ services:
       interval: 30s
       timeout: 15s
       retries: 25
+      start_period: 120s
+    restart: unless-stopped
+    networks:
+      - local
+
+  knowledge-rag-docs:
+    build: ./knowledge-rag-docs
+    image: knowledge-rag-docs-local:latest
+    container_name: knowledge-rag-docs
+    environment:
+      - KNOWLEDGE_RAG_DIR=/app
+    volumes:
+      - ${KNOWLEDGE_RAG_CONFIG:-./knowledge-rag-docs/config.yaml}:/app/config.yaml:ro
+      - ${KNOWLEDGE_RAG_DOCUMENTS:-./knowledge-rag-docs/documents}:/app/documents
+      - ${KNOWLEDGE_RAG_DATA:-./knowledge-rag-docs/data}:/app/data
+    ports:
+      - "127.0.0.1:8179:8179"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import socket; s=socket.create_connection(('127.0.0.1',8179),2); s.close()\"",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 10
       start_period: 120s
     restart: unless-stopped
     networks:

@@ -14,7 +14,7 @@ flowchart TB
     HR["headroom-proxy :8787"]
     REPO["PROJECT_ROOT"]
     CG["code-graph-mcp :5070"]
-    KRD["knowledge-rag-docs :8179\n(native)"]
+    KRD["knowledge-rag-docs :8179\n(Docker)"]
     SYNC["sync-docs.sh"]
 
     REPO --> SER
@@ -45,7 +45,7 @@ flowchart TB
 ## Repository layout
 
 ```
-agent/
+hyper-agent/
 ├── README.md                 ← you are here
 ├── local/                    ← run on MacBook (Headroom + MCP + code indexes)
 │   ├── README.md
@@ -80,10 +80,9 @@ cp .env.example .env
 # Edit PROJECT_ROOT and optionally VLLM_UPSTREAM_URL
 docker compose up -d --build
 
-# Native docs RAG (Apple Silicon ONNX — not in Docker)
-bash scripts/setup-knowledge-rag-docs.sh   # once
-bash scripts/sync-docs.sh
-bash scripts/run-knowledge-rag-docs.sh --background
+# Populate docs/index if empty (pick one):
+bash scripts/pull-knowledge-rag-docs.sh --stop-remote   # from GPU
+# bash scripts/sync-docs.sh                            # or fetch on Mac
 ```
 
 See [local/README.md](local/README.md) for Serena (native uvx) and [remote-gpu/README.md](remote-gpu/README.md) for LLM provider settings.
@@ -107,7 +106,7 @@ Assumes local stack and SSH tunnel to vLLM are running:
 ```bash
 ssh -N -L 8000:127.0.0.1:8000 user@gpu-host
 bash local/scripts/setup-claude-mcp.sh   # writes ~/.claude/settings.json
-cd /path/to/agent && claude
+cd /path/to/your/project && claude
 ```
 
 Register MCP servers in `~/.claude.json` separately (`claude mcp add ... -s user`). Serena hooks: `.claude/settings.json`.
@@ -119,8 +118,8 @@ Register MCP servers in `~/.claude.json` separately (`claude mcp add ... -s user
 | vLLM | GPU | 8000 | `remote-gpu/` |
 | knowledge-rag-docs (optional) | GPU (Docker) | 8179 | `remote-gpu/knowledge-rag-docs/` |
 | Headroom proxy | Mac | 8787 | `local/` |
-| knowledge-rag-docs (default) | Mac (native) | 8179 | `local/knowledge-rag-docs/` |
-| serena | Mac | — | native `uvx` stdio — see `local/codex.serena.example.toml` |
+| knowledge-rag-docs (default) | Mac (Docker) | 8179 | `local/knowledge-rag-docs/` |
+| serena | Mac | — | native `uvx` stdio — see [local/README.md](local/README.md) |
 | code-graph-mcp | Mac | 5070 | `local/` |
 
 ## End-to-end smoke test

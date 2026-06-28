@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Download public docs into local/knowledge-rag-docs/documents/ (native; no Docker).
+# Download public docs into local/knowledge-rag-docs/documents/ (mounted into Docker).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -11,3 +11,7 @@ export MANIFEST="$REPO_ROOT/remote-gpu/knowledge-rag-docs/fetch-docs-manifest.ts
 
 mkdir -p "$DOCS_ROOT"
 bash "$REPO_ROOT/remote-gpu/knowledge-rag-docs/fetch-docs.sh"
+
+echo ""
+echo "Docs updated. knowledge-rag file watcher will re-index (Docker) or restart:"
+echo "  bash local/scripts/setup-knowledge-rag-docs.sh --no-build"

@@ -4,7 +4,7 @@
 # Assumes:
 #   - local/ containers (Headroom, code-graph) are running
 #   - remote-gpu (vLLM) runs on a remote GPU host
-#   - knowledge-rag-docs runs natively on Mac (bash local/scripts/run-knowledge-rag-docs.sh)
+#   - knowledge-rag-docs in Docker (bash local/scripts/setup-knowledge-rag-docs.sh)
 #   - SSH port forwarding for vLLM only:
 #       ssh -N -L 8000:127.0.0.1:8000 user@gpu-host
 #
@@ -19,6 +19,7 @@ HEADROOM_MCP_URL="${HEADROOM_MCP_URL:-http://127.0.0.1:8790/mcp}"
 ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-headroom-local}"
 MODEL="${ANTHROPIC_MODEL:-qwen3.6}"
 USER_SETTINGS="${CLAUDE_USER_SETTINGS:-$HOME/.claude/settings.json}"
+KNOWLEDGE_RAG_MCP_URL="${KNOWLEDGE_RAG_MCP_URL:-http://127.0.0.1:8179/mcp}"
 
 log() { printf '==> %s\n' "$*"; }
 
@@ -70,14 +71,21 @@ verify_headroom() {
 }
 
 install_headroom_mcp() {
-  log "Registering Headroom MCP (HTTP → headroom-ai :8788/mcp)"
+  log "Registering Headroom MCP (HTTP → $HEADROOM_MCP_URL)"
   claude mcp remove headroom -s user 2>/dev/null || true
   claude mcp add --transport http headroom "$HEADROOM_MCP_URL" -s user
+}
+
+install_knowledge_rag_mcp() {
+  log "Registering knowledge-rag-docs MCP (HTTP → $KNOWLEDGE_RAG_MCP_URL)"
+  claude mcp remove knowledge-rag-docs -s user 2>/dev/null || true
+  claude mcp add --transport http knowledge-rag-docs "$KNOWLEDGE_RAG_MCP_URL" -s user
 }
 
 main() {
   write_user_settings
   install_headroom_mcp
+  install_knowledge_rag_mcp || true
   log "Verifying local Headroom..."
   verify_headroom || true
 
@@ -87,6 +95,9 @@ Done. Claude Code user settings written to:
   $USER_SETTINGS
 
 Headroom MCP registered at $HEADROOM_MCP_URL (runs inside headroom-ai container with the proxy).
+knowledge-rag-docs registered at $KNOWLEDGE_RAG_MCP_URL — start with:
+  bash local/scripts/setup-knowledge-rag-docs.sh
+  # or: cd local && docker compose up -d --build knowledge-rag-docs
 Restart Claude Code if it was already running, then verify with /mcp inside a session.
 
 Start a session from the repo root:
@@ -95,7 +106,6 @@ Start a session from the repo root:
 Other MCP servers (global user scope, if not already registered):
   claude mcp add serena -s user -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context claude-code --project-from-cwd --enable-web-dashboard false --open-web-dashboard false --log-level ERROR
   claude mcp add --transport http code-graph http://127.0.0.1:5070/mcp -s user
-  claude mcp add --transport http knowledge-rag-docs http://127.0.0.1:8179/mcp -s user
 EOF
 }
 

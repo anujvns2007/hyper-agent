@@ -9,7 +9,7 @@ Headroom runs on your Mac — see [../local/README.md](../local/README.md). Your
 | Service | Port | Purpose |
 |---------|------|---------|
 | **vllm-backend** | 8000 | OpenAI-compatible LLM (Qwen3.6-35B-A3B-FP8) |
-| **knowledge-rag-docs** | 8179 | Semantic search over fetched public docs (MCP SSE) |
+| **knowledge-rag-docs** | 8179 | Semantic search over fetched public docs (MCP streamable HTTP) |
 | **docs-sync** | — | Downloads docs from manifest on a schedule |
 
 ## Quick start
@@ -129,7 +129,7 @@ remote-gpu/
 
 ## Documentation index (manifest categories)
 
-`fetch-docs-manifest.tsv` is the **single source of truth** for both Mac (native) and GPU (Docker). Categories include:
+`fetch-docs-manifest.tsv` is the **single source of truth** for both Mac (Docker) and GPU (Docker). Categories include:
 
 | Category | Examples |
 |----------|----------|
@@ -175,7 +175,7 @@ Use `--reindex` when chunking, embedding model, or dimensions change (wipes Chro
 bash scripts/refresh-knowledge-rag-docs.sh --reindex
 ```
 
-On Mac, run `bash local/scripts/sync-docs.sh` and restart native knowledge-rag-docs (same manifest file).
+On Mac, run `bash local/scripts/sync-docs.sh` and restart: `bash local/scripts/setup-knowledge-rag-docs.sh --no-build`.
 
 ## Customization
 

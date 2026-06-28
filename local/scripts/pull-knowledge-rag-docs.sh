@@ -2,13 +2,13 @@
 # Pull public docs + Chroma index from the GPU host — no sync-docs.sh on Mac.
 #
 # Copies remote-gpu/knowledge-rag-docs/{documents,data} to local/knowledge-rag-docs/
-# so a Mac with limited internet can run native knowledge-rag-docs offline.
+# so a Mac with limited internet can run knowledge-rag-docs in Docker offline.
 #
 # Prereqs on GPU host: docs fetched and indexed (see remote-gpu/scripts/refresh-knowledge-rag-docs.sh).
 #
 # Usage:
 #   GPU_HOST=user@gpu-host \
-#   REMOTE_DOCS_RAG_DIR=~/work/repo/agent/remote-gpu/knowledge-rag-docs \
+#   REMOTE_DOCS_RAG_DIR=~/work/repo/hyper-agent/remote-gpu/knowledge-rag-docs \
 #   bash local/scripts/pull-knowledge-rag-docs.sh
 #
 #   bash local/scripts/pull-knowledge-rag-docs.sh --stop-remote   # pause GPU container during copy
@@ -44,7 +44,7 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 GPU_HOST="${GPU_HOST:?Set GPU_HOST (e.g. user@gpu-host) in env or local/.env}"
-REMOTE_DOCS_RAG_DIR="${REMOTE_DOCS_RAG_DIR:-~/work/repo/agent/remote-gpu/knowledge-rag-docs}"
+REMOTE_DOCS_RAG_DIR="${REMOTE_DOCS_RAG_DIR:-~/work/repo/hyper-agent/remote-gpu/knowledge-rag-docs}"
 
 SSH_OPTS=(-o RemoteCommand=none -o RequestTTY=no)
 RSYNC=(rsync -avh --progress -e "ssh ${SSH_OPTS[*]}")
@@ -54,27 +54,29 @@ fi
 
 # Runtime junk — recreated locally; do not copy from GPU or Mac.
 RSYNC_EXCLUDES=(
+  --exclude=__MACOSX
+  --exclude='**/._*'
   --exclude=knowledge-rag.lock
-  --exclude=knowledge-rag-docs.pid
-  --exclude=knowledge-rag-docs.log
+  --exclude=backups
   --exclude=one-off-index.log
 )
 
 log() { printf '==> %s\n' "$*"; }
 
 stop_local() {
-  local pid_file="$DOCS_DIR/data/knowledge-rag-docs.pid"
-  if [[ -f "$pid_file" ]]; then
-    local pid
-    pid="$(cat "$pid_file")"
-    if kill -0 "$pid" 2>/dev/null; then
-      log "Stopping local knowledge-rag-docs (pid $pid)..."
-      kill "$pid" 2>/dev/null || true
-      sleep 1
-    fi
-    rm -f "$pid_file"
+  if docker info >/dev/null 2>&1; then
+    (cd "$LOCAL_DIR" && docker compose stop knowledge-rag-docs 2>/dev/null) || true
   fi
-  rm -f "$DOCS_DIR/data/knowledge-rag.lock"
+}
+
+start_local() {
+  if [[ "$DRY_RUN" == 1 ]]; then
+    return 0
+  fi
+  if docker info >/dev/null 2>&1; then
+    log "Restarting local knowledge-rag-docs (Docker)..."
+    bash "$SCRIPT_DIR/setup-knowledge-rag-docs.sh" --no-build
+  fi
 }
 
 remote_exec() {
@@ -135,6 +137,8 @@ main() {
     exit 0
   fi
 
+  start_local
+
   doc_count="$(find "$DOCS_DIR/documents" -type f 2>/dev/null | wc -l | tr -d ' ')"
   chroma_ok=0
   [[ -d "$DOCS_DIR/data/chroma_db" ]] && chroma_ok=1
@@ -146,8 +150,7 @@ Done.
   chroma_db: $([ "$chroma_ok" == 1 ] && echo present || echo MISSING — reindex on GPU and pull again)
 
 Start on Mac (no sync-docs.sh needed):
-  bash local/scripts/setup-knowledge-rag-docs.sh    # once, if .venv missing
-  bash local/scripts/run-knowledge-rag-docs.sh --background
+  bash local/scripts/setup-knowledge-rag-docs.sh
 
 MCP: http://127.0.0.1:8179/mcp
 

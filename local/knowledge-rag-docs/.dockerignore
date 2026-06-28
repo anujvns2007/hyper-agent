@@ -1,0 +1,9 @@
+**/__MACOSX/**
+**/._*
+documents/**
+data/**
+.venv/**
+__MACOSX/**
+*.log
+*.pid
+.gitkeep

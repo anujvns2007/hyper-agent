@@ -12,7 +12,7 @@
 #
 # Tunneled endpoints on Mac:
 #   vLLM (Headroom upstream):  http://127.0.0.1:8000
-#   knowledge-rag-docs:        http://127.0.0.1:8179/mcp  (optional — Mac may run native instead)
+#   knowledge-rag-docs:        http://127.0.0.1:8179/mcp  (optional — Mac runs Docker copy via local/)
 #
 # Headroom runs locally — see local/docker-compose.yaml.
 

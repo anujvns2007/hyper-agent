@@ -1,5 +1,5 @@
 #!/bin/sh
-# Download public llms.txt docs into knowledge-rag/documents/.
+# Download public llms.txt docs into documents/ (see DOCS_ROOT).
 # Add rows to docs-manifest.tsv: category<TAB>url<TAB>filename
 set -eu
 
