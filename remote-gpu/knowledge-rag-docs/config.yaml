@@ -11,9 +11,9 @@ server:
 
 models:
   embedding:
-    model: "BAAI/bge-large-en-v1.5"  # 1024D — good fit for NVIDIA GPU indexing
+    model: "BAAI/bge-large-en-v1.5"  # 1024D — NVIDIA GPU indexing
     dimensions: 1024
-    gpu: true                           # onnxruntime-gpu + CUDA (see Dockerfile [gpu] extra)
+    gpu: true
   reranker:
     enabled: true
     model: "Xenova/ms-marco-MiniLM-L-6-v2"
@@ -24,7 +24,6 @@ documents:
     - ".md"
     - ".txt"
     - ".rst"
-    - ".adoc"
     - ".pdf"
     - ".py"
     - ".json"
@@ -45,36 +44,249 @@ search:
   rerank:
     enabled: true
 
+# Folder path → category name (documents/<folder>/…)
 category_mappings:
-  python: ["python"]
-  typescript: ["typescript", "ts"]
-  javascript: ["javascript", "js", "node"]
-  docker: ["docker"]
-  fastapi: ["fastapi"]
-  react: ["react"]
-  nextjs: ["nextjs", "next"]
-  postgres: ["postgres", "postgresql"]
-  redis: ["redis"]
-  git: ["git", "github", "gitlab", "commit", "branch", "merge", "rebase", "clone", "pull request"]
-  bitbucket: ["bitbucket", "atlassian", "bb", "pipeline", "repository", "workspace", "pullrequest"]
-  flutter: ["flutter", "dart", "widget", "mobile"]
-  dart: ["dart", "flutter"]
-  go: ["go", "golang", "goroutine", "channel", "module", "gomod", "interface"]
-  rust: ["rust", "cargo"]
-  cpp: ["cpp", "c++", "cplusplus"]
-  webrtc: ["webrtc", "rtc", "peerconnection", "ice", "stun", "turn"]
-  security-protocols: ["security", "tls", "ssl", "dtls", "srtp", "oauth", "jwt", "rfc", "ietf", "ipsec", "ssh"]
-  pqc: ["pqc", "post-quantum", "quantum", "kyber", "dilithium", "oqs", "nist"]
-  jira: ["jira", "atlassian", "forge", "jql", "issue", "sprint", "epic", "story", "board"]
-  gstreamer: ["gstreamer", "gst", "pipeline", "pad", "element", "gstreamer", "playbin", "caps", "buffer"]
-  ffmpeg: ["ffmpeg", "ffprobe", "avcodec", "libav", "transcode", "mux", "demux"]
-  livekit: ["livekit", "sfu", "room", "track", "egress", "ingress"]
-  database: ["database", "db", "sql", "sqlite", "redis", "sqlalchemy", "orm", "query", "table", "migration", "wal"]
-  matrix: ["matrix", "synapse", "homeserver", "m.room", "federation", "megolm", "olm", "_matrix", "room_id", "event"]
-  nats: ["nats", "jetstream", "subject", "subscription", "nats-server", "queue group", "nats.io"]
-  rabbitmq: ["rabbitmq", "amqp", "exchange", "binding", "routing key", "consumer", "publisher", "broker", "dead letter"]
-  http: ["http", "http1", "http2", "http3", "http/1", "http/2", "http/3", "quic", "h2", "h3", "header", "status code", "request", "response"]
-  networking: ["networking", "tcp", "udp", "ip", "ipv4", "socket", "dns", "packet", "subnet", "routing", "latency", "bandwidth", "mtu", "port"]
-  kubernetes: ["kubernetes", "k8s", "kubectl", "pod", "deployment", "namespace", "cluster"]
-  helm: ["helm", "chart", "values.yaml", "release", "template"]
-  general: ["general", "misc"]
+  docker: docker
+  react: react
+  nextjs: nextjs
+  anthropic: anthropic
+  pydantic: pydantic
+  uv: uv
+  ruff: ruff
+  pytorch: pytorch
+  postgres: postgres
+  flutter: flutter
+  dart: dart
+  go: go
+  rust: rust
+  cpp: cpp
+  webrtc: webrtc
+  security-protocols: security-protocols
+  pqc: pqc
+  jira: jira
+  bitbucket: bitbucket
+  git: git
+  gstreamer: gstreamer
+  ffmpeg: ffmpeg
+  livekit: livekit
+  kubernetes: kubernetes
+  helm: helm
+  database: database
+  matrix: matrix
+  nats: nats
+  rabbitmq: rabbitmq
+  http: http
+  networking: networking
+  general: general
+
+# Query keywords → prioritize matching category (not a hard filter)
+keyword_routes:
+  docker:
+    - docker
+  react:
+    - react
+  nextjs:
+    - nextjs
+    - next
+  postgres:
+    - postgres
+    - postgresql
+  git:
+    - git
+    - github
+    - gitlab
+    - commit
+    - branch
+    - merge
+    - rebase
+    - clone
+    - pull request
+  bitbucket:
+    - bitbucket
+    - atlassian
+    - bb
+    - pipeline
+    - repository
+    - workspace
+    - pullrequest
+  flutter:
+    - flutter
+    - dart
+    - widget
+    - mobile
+  dart:
+    - dart
+    - flutter
+  go:
+    - go
+    - golang
+    - goroutine
+    - channel
+    - module
+    - gomod
+    - interface
+  rust:
+    - rust
+    - cargo
+  cpp:
+    - cpp
+    - c++
+    - cplusplus
+  webrtc:
+    - webrtc
+    - rtc
+    - peerconnection
+    - ice
+    - stun
+    - turn
+  security-protocols:
+    - security
+    - tls
+    - ssl
+    - dtls
+    - srtp
+    - oauth
+    - jwt
+    - rfc
+    - ietf
+    - ipsec
+    - ssh
+  pqc:
+    - pqc
+    - post-quantum
+    - quantum
+    - kyber
+    - dilithium
+    - oqs
+    - nist
+  jira:
+    - jira
+    - atlassian
+    - forge
+    - jql
+    - issue
+    - sprint
+    - epic
+    - story
+    - board
+  gstreamer:
+    - gstreamer
+    - gst
+    - pipeline
+    - pad
+    - element
+    - playbin
+    - caps
+    - buffer
+  ffmpeg:
+    - ffmpeg
+    - ffprobe
+    - avcodec
+    - libav
+    - transcode
+    - mux
+    - demux
+  livekit:
+    - livekit
+    - sfu
+    - room
+    - track
+    - egress
+    - ingress
+  database:
+    - database
+    - db
+    - sql
+    - sqlite
+    - redis
+    - sqlalchemy
+    - orm
+    - query
+    - table
+    - migration
+    - wal
+  matrix:
+    - matrix
+    - synapse
+    - homeserver
+    - m.room
+    - federation
+    - megolm
+    - olm
+    - _matrix
+    - room_id
+    - event
+  nats:
+    - nats
+    - jetstream
+    - subject
+    - subscription
+    - nats-server
+    - queue group
+    - nats.io
+  rabbitmq:
+    - rabbitmq
+    - amqp
+    - exchange
+    - binding
+    - routing key
+    - consumer
+    - publisher
+    - broker
+    - dead letter
+  http:
+    - http
+    - http1
+    - http2
+    - http3
+    - http/1
+    - http/2
+    - http/3
+    - quic
+    - h2
+    - h3
+    - header
+    - status code
+    - request
+    - response
+  networking:
+    - networking
+    - tcp
+    - udp
+    - ip
+    - ipv4
+    - socket
+    - dns
+    - packet
+    - subnet
+    - routing
+    - latency
+    - bandwidth
+    - mtu
+    - port
+  kubernetes:
+    - kubernetes
+    - k8s
+    - kubectl
+    - pod
+    - deployment
+    - namespace
+    - cluster
+  helm:
+    - helm
+    - chart
+    - values.yaml
+    - release
+    - template
+
+query_expansions:
+  pg: ["postgresql", "postgres", "pg"]
+  postgresql: ["postgresql", "postgres", "pg"]
+  k8s: ["kubernetes", "k8s"]
+  kubernetes: ["kubernetes", "k8s"]
+  go: ["golang", "go"]
+  golang: ["golang", "go"]
+  next: ["nextjs", "next.js", "next"]
+  nextjs: ["nextjs", "next.js", "next"]
+  amqp: ["amqp", "rabbitmq"]
+  quic: ["quic", "http3", "http/3"]

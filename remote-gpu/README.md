@@ -159,7 +159,9 @@ Then restart sync or wait for the next scheduled fetch:
 docker compose exec docs-sync /fetch-docs.sh
 ```
 
-Categories map to search hints in `knowledge-rag-docs/config.yaml` → `category_mappings`.
+Categories map to search hints in `knowledge-rag-docs/config.yaml`:
+- `category_mappings` — folder path → category name (strings, not lists)
+- `keyword_routes` — query keywords that prioritize each category
 
 After editing the manifest or `config.yaml`, refresh on the GPU host:
 
@@ -217,7 +219,9 @@ docker compose up -d knowledge-rag-docs
 
 **knowledge-rag-docs unreachable from Mac** — SSH tunnel must be running on port 8179.
 
-**knowledge-rag-docs GPU embeddings** — `config.yaml` sets `models.embedding.gpu: true`; the image installs `knowledge-rag[server,gpu]`. Compose passes one NVIDIA device (shares the GPU with vLLM). After rebuild, logs should show CUDA providers; if not, it falls back to CPU with a `[WARN]`. vLLM uses `--gpu-memory-utilization 0.7`; if embedding indexing OOMs, lower vLLM utilization or switch to `bge-small-en-v1.5` (384D).
+**knowledge-rag-docs GPU embeddings** — `config.yaml` sets `models.embedding.gpu: true`; the image installs `knowledge-rag[server,gpu]`. Compose passes one NVIDIA device (shares the GPU with vLLM). On **aarch64 hosts (e.g. NVIDIA GB10)**, ONNX GPU is often unavailable — logs show CPU fallback, which is expected until `onnxruntime-gpu` supports the platform. After rebuild, logs should show CUDA providers on x86_64; if not, it falls back to CPU with a `[WARN]`. vLLM uses `--gpu-memory-utilization 0.7`; if embedding indexing OOMs, lower vLLM utilization or switch to `bge-small-en-v1.5` (384D).
+
+**`unhashable type: list` indexing errors** — `category_mappings` must be `folder: category` strings, not keyword lists. Put keyword lists in `keyword_routes` (see `config.yaml`).
 
 **Headroom issues** — Headroom runs locally; see [../local/README.md](../local/README.md).
 

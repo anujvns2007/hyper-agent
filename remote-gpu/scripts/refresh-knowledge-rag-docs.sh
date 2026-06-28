@@ -22,14 +22,22 @@ if ! docker compose ps --status running knowledge-rag-docs docs-sync 2>/dev/null
   docker compose up -d docs-sync knowledge-rag-docs
 fi
 
+echo "[refresh] recreating docs-sync (reload manifest bind mount)..."
+docker compose up -d --force-recreate docs-sync
+
 echo "[refresh] fetching docs from fetch-docs-manifest.tsv..."
+# docs-sync installs curl on first start; wait after recreate
+for _ in $(seq 1 30); do
+  if docker compose exec -T docs-sync sh -c 'command -v curl >/dev/null' 2>/dev/null; then
+    break
+  fi
+  sleep 2
+done
 docker compose exec -T docs-sync /fetch-docs.sh
 
 if [[ "$REINDEX" == 1 ]]; then
-  echo "[refresh] wiping index (embedding model/dim must match config.yaml)..."
-  docker compose stop knowledge-rag-docs
-  rm -rf knowledge-rag-docs/data/chroma_db knowledge-rag-docs/data/index_metadata.json
-  docker compose up -d knowledge-rag-docs
+  echo "[refresh] wiping index and running one-off force index (see data/one-off-index.log)..."
+  bash scripts/run-one-off-index.sh
 else
   echo "[refresh] restarting knowledge-rag-docs (file watcher re-indexes changes)..."
   docker compose restart knowledge-rag-docs

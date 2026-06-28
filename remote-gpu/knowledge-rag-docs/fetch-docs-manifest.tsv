@@ -8,7 +8,11 @@ pydantic	https://docs.pydantic.dev/llms.txt	llms.txt
 uv	https://docs.astral.sh/uv/llms.txt	llms.txt
 ruff	https://docs.astral.sh/ruff/llms.txt	llms.txt
 pytorch	https://pytorch.org/llms.txt	llms.txt
-postgres	https://www.postgresql.org/llms-full.txt	llms-full.txt
+postgres	https://www.postgresql.org/docs/current/tutorial.html	tutorial.txt
+postgres	https://www.postgresql.org/docs/current/ddl.html	ddl.txt
+postgres	https://www.postgresql.org/docs/current/sql.html	sql.txt
+postgres	https://www.postgresql.org/docs/current/indexes.html	indexes.txt
+postgres	https://www.postgresql.org/docs/current/performance-tips.html	performance-tips.txt
 # --- mobile / languages ---
 flutter	https://docs.flutter.dev/llms.txt	llms.txt
 dart	https://dart.dev/guides/llms.txt	llms.txt
@@ -39,13 +43,13 @@ jira	https://developer.atlassian.com/cloud/jira/software/rest/intro/index.md	jir
 jira	https://developer.atlassian.com/platform/forge/llms.txt	forge-llms.txt
 bitbucket	https://developer.atlassian.com/cloud/bitbucket/rest/intro/index.md	rest-api-intro.md
 # --- git ---
-git	https://raw.githubusercontent.com/git/git/master/Documentation/user-manual.adoc	user-manual.adoc
-git	https://raw.githubusercontent.com/git/git/master/Documentation/gittutorial.adoc	gittutorial.adoc
-git	https://raw.githubusercontent.com/git/git/master/Documentation/giteveryday.adoc	giteveryday.adoc
-git	https://raw.githubusercontent.com/git/git/master/Documentation/git-commit.adoc	git-commit.adoc
-git	https://raw.githubusercontent.com/git/git/master/Documentation/git-merge.adoc	git-merge.adoc
-git	https://raw.githubusercontent.com/git/git/master/Documentation/git-branch.adoc	git-branch.adoc
-git	https://raw.githubusercontent.com/git/git/master/Documentation/git-rebase.adoc	git-rebase.adoc
+git	https://raw.githubusercontent.com/git/git/master/Documentation/user-manual.adoc	user-manual.txt
+git	https://raw.githubusercontent.com/git/git/master/Documentation/gittutorial.adoc	gittutorial.txt
+git	https://raw.githubusercontent.com/git/git/master/Documentation/giteveryday.adoc	giteveryday.txt
+git	https://raw.githubusercontent.com/git/git/master/Documentation/git-commit.adoc	git-commit.txt
+git	https://raw.githubusercontent.com/git/git/master/Documentation/git-merge.adoc	git-merge.txt
+git	https://raw.githubusercontent.com/git/git/master/Documentation/git-branch.adoc	git-branch.txt
+git	https://raw.githubusercontent.com/git/git/master/Documentation/git-rebase.adoc	git-rebase.txt
 # --- media / streaming ---
 gstreamer	https://raw.githubusercontent.com/GStreamer/gstreamer/main/README.md	gstreamer-readme.md
 gstreamer	https://raw.githubusercontent.com/GStreamer/gst-docs/master/README.md	gst-docs-readme.md
