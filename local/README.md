@@ -34,11 +34,18 @@ docker compose up -d --build
 
 # Native docs RAG (one-time setup, then run)
 bash scripts/setup-knowledge-rag-docs.sh
+bash scripts/pull-knowledge-rag-docs.sh --stop-remote   # from GPU; no sync-docs on Mac
+bash scripts/run-knowledge-rag-docs.sh --background
+```
+
+Or fetch docs on the Mac if you have bandwidth:
+
+```bash
 bash scripts/sync-docs.sh
 bash scripts/run-knowledge-rag-docs.sh --background
 ```
 
-First run: `sync-docs.sh` downloads public docs (Flutter, LiveKit, Rust, …) from `remote-gpu/knowledge-rag-docs/fetch-docs-manifest.tsv`, then `knowledge-rag` indexes them on native ARM CPU (`bge-large-en-v1.5`, 1024D). First index can take a while — unload heavy Ollama models during reindex if memory is tight.
+First run without a GPU pull: `sync-docs.sh` downloads public docs, then `knowledge-rag` indexes them on native ARM CPU (`bge-large-en-v1.5`, 1024D). First index can take a while — unload heavy Ollama models during reindex if memory is tight.
 
 Headroom forwards to vLLM on the GPU host. Start the SSH tunnel if using `host.docker.internal:8000`:
 
@@ -79,7 +86,8 @@ claude    # from repo root
 | Script | Purpose |
 |--------|---------|
 | `scripts/setup-knowledge-rag-docs.sh` | Create venv, `pip install knowledge-rag[server]` |
-| `scripts/sync-docs.sh` | Fetch docs from manifest (re-run when manifest changes) |
+| `scripts/pull-knowledge-rag-docs.sh` | **Pull `documents/` + `data/` from GPU** (no Mac internet) |
+| `scripts/sync-docs.sh` | Fetch docs from manifest on Mac (needs internet) |
 | `scripts/run-knowledge-rag-docs.sh` | Foreground server |
 | `scripts/run-knowledge-rag-docs.sh --background` | Daemon on `:8179` |
 
@@ -93,7 +101,20 @@ rm -rf knowledge-rag-docs/data/chroma_db knowledge-rag-docs/data/index_metadata.
 bash scripts/run-knowledge-rag-docs.sh --background
 ```
 
-**Index on GPU host, query on Mac** — on the GPU machine after `git pull`, run `bash remote-gpu/scripts/refresh-knowledge-rag-docs.sh --reindex` (CUDA `bge-large`), then rsync `data/` to `local/knowledge-rag-docs/data/` (embedding model + dimensions must match).
+**Index on GPU host, use on Mac (limited bandwidth)** — on the GPU machine:
+
+```bash
+bash remote-gpu/scripts/refresh-knowledge-rag-docs.sh --reindex
+```
+
+On Mac (set `GPU_HOST` and optional `REMOTE_DOCS_RAG_DIR` in `local/.env`):
+
+```bash
+bash local/scripts/pull-knowledge-rag-docs.sh --stop-remote
+bash local/scripts/run-knowledge-rag-docs.sh --background
+```
+
+Pulls `documents/`, `chroma_db/`, `index_metadata.json`, and `models_cache/` — no `sync-docs.sh` on Mac. Embedding model + dimensions must match (`BAAI/bge-large-en-v1.5`, 1024D).
 
 ## Codex
 

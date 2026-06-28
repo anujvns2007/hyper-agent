@@ -219,7 +219,9 @@ docker compose up -d knowledge-rag-docs
 
 **knowledge-rag-docs unreachable from Mac** — SSH tunnel must be running on port 8179.
 
-**knowledge-rag-docs GPU embeddings** — `config.yaml` sets `models.embedding.gpu: true`; the image installs `knowledge-rag[server,gpu]`. Compose passes one NVIDIA device (shares the GPU with vLLM). On **aarch64 hosts (e.g. NVIDIA GB10)**, ONNX GPU is often unavailable — logs show CPU fallback, which is expected until `onnxruntime-gpu` supports the platform. After rebuild, logs should show CUDA providers on x86_64; if not, it falls back to CPU with a `[WARN]`. vLLM uses `--gpu-memory-utilization 0.7`; if embedding indexing OOMs, lower vLLM utilization or switch to `bge-small-en-v1.5` (384D).
+**knowledge-rag-docs build fails on aarch64 (GB10)** — PyPI has no `onnxruntime-gpu` wheel for ARM64. The Dockerfile uses `nvidia/cuda:13.0.1-cudnn-runtime-ubuntu24.04` plus a Blackwell (SM121) GPU build of ORT (override with `ORT_GPU_AARCH64_WHEEL` at build time). Requires Ubuntu 22.04+ host and NVIDIA Container Toolkit.
+
+**knowledge-rag-docs GPU embeddings** — `config.yaml` sets `models.embedding.gpu: true`. Compose passes one NVIDIA device (shares the GPU with vLLM). After startup, logs should show `GPU STATUS: ACTIVE` and `[GPU accelerated]`. On GB10, Microsoft's ORT CUDA 13 nightly may hit PTX errors — the default SM121 wheel avoids that. vLLM uses `--gpu-memory-utilization 0.7`; if embedding indexing OOMs, lower vLLM utilization or switch to `bge-small-en-v1.5` (384D).
 
 **`unhashable type: list` indexing errors** — `category_mappings` must be `folder: category` strings, not keyword lists. Put keyword lists in `keyword_routes` (see `config.yaml`).
 

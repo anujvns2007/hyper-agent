@@ -89,6 +89,9 @@ services:
     build: ./knowledge-rag-docs
     image: knowledge-rag-docs:latest
     container_name: knowledge-rag-docs
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
     volumes:
       - ./knowledge-rag-docs/config.yaml:/app/config.yaml:ro
       - ./knowledge-rag-docs/documents:/app/documents
